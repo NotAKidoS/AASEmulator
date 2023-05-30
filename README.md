@@ -21,6 +21,9 @@ It is mostly fluff. What you see is what you get:
 
 That's really it as of now. Possible goal is to get CVRParameterStream, CVRAdvancedAvatarSettingTrigger, and CVRPointer emulated i guess.
 
+To be honest though, it is unlikely I will personally continue this project or any other CCK tool until the following is done:
+https://feedback.abinteractive.net/p/add-a-assembly-definition-to-the-cck
+
 ------
 
 # Credit:
