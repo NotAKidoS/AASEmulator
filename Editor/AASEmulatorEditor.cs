@@ -3,168 +3,193 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using static NAK.AASEmulator.Editor.EditorExtensions;
+using static NAK.AASEmulator.Runtime.AASEmulatorRuntime;
 
 namespace NAK.AASEmulator.Editor
 {
     [CustomEditor(typeof(AASEmulatorRuntime))]
     public class AASEmulatorRuntimeEditor : UnityEditor.Editor
     {
-        GUIStyle boldFoldoutStyle;
-        AASEmulatorRuntime targetScript;
+        #region Variables
 
-        void OnEnable()
+        private GUIStyle _boldFoldoutStyle;
+        private AASEmulatorRuntime _targetScript;
+
+        #endregion
+
+        #region Unity / GUI Methods
+
+        private void OnEnable()
         {
-            AASEmulatorRuntime.OnRequestRepaint -= Repaint;
-            AASEmulatorRuntime.OnRequestRepaint += Repaint;
+            OnRequestRepaint -= Repaint;
+            OnRequestRepaint += Repaint;
         }
-        void OnDisable() => AASEmulatorRuntime.OnRequestRepaint -= Repaint;
-
+        private void OnDisable() => OnRequestRepaint -= Repaint;
+        
         public override void OnInspectorGUI()
         {
-            targetScript = (AASEmulatorRuntime)target;
-            boldFoldoutStyle = new GUIStyle(EditorStyles.foldout);
-            boldFoldoutStyle.fontStyle = FontStyle.Bold;
+            _targetScript = (AASEmulatorRuntime)target;
+            _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
+            
+            Draw_AvatarInfo();
+            
+            Draw_LipSync();
+            Draw_BuiltInGestures();
+            Draw_BuiltInLocomotion();
+            Draw_BuiltInEmotes();
 
-            DrawAvatarInfo();
-
-            DrawLipSync();
-            DrawBuiltInGestures();
-            DrawBuiltInLocomotion();
-            DrawBuiltInEmotes();
-
-            DrawAnimatorParameters();
-
-            //DrawAdvanced();
+            Draw_AdditionalParameters();
         }
 
-        void DrawAvatarInfo()
+        #endregion Unity / GUI Methods
+        
+        #region Drawing Methods
+
+        void Draw_AvatarInfo()
         {
             EditorGUILayout.Space();
-            targetScript.avatarInfoFoldout = EditorGUILayout.Foldout(targetScript.avatarInfoFoldout, "Avatar Info", true, boldFoldoutStyle);
+            _targetScript.avatarInfoFoldout = EditorGUILayout.Foldout(_targetScript.avatarInfoFoldout, "Avatar Info", true, _boldFoldoutStyle);
 
-            if (targetScript.avatarInfoFoldout)
+            if (_targetScript.avatarInfoFoldout)
             {
                 EditorGUI.indentLevel++;
 
                 // Add label to show if an emote is currently playing or not
-                string emoteStatus = targetScript.IsEmotePlaying() ? "Playing an Emote - Tracking Disabled" : "Not Playing an Emote - Tracking Enabled";
+                string emoteStatus = _targetScript.IsEmotePlaying ? "Playing an Emote - Tracking Disabled" : "Not Playing an Emote - Tracking Enabled";
                 EditorGUILayout.LabelField("Emote Status:", emoteStatus);
-
+                
                 // Add label to show the eye movement status
-                string eyeMovementStatus = targetScript.IsEyeMovement() ? "Enabled - Eye Look On" : "Disabled - Eye Look Off";
+                string eyeMovementStatus = _targetScript.UseEyeMovement ? "Enabled - Eye Look On" : "Disabled - Eye Look Off";
                 EditorGUILayout.LabelField("Eye Movement:", eyeMovementStatus);
 
                 // Add label to show the blink blendshapes status
-                string blinkBlendshapesStatus = targetScript.IsBlinkBlendshapes() ? "Enabled - Eye Blink On" : "Disabled - Eye Blink Off";
+                string blinkBlendshapesStatus = _targetScript.UseBlinkBlendshapes ? "Enabled - Eye Blink On" : "Disabled - Eye Blink Off";
                 EditorGUILayout.LabelField("Blink Blendshapes:", blinkBlendshapesStatus);
 
                 // Add label to show the lipsync status
-                string lipsyncStatus = targetScript.IsLipsync() ? "Enabled - Lipsync On" : "Disabled - Lipsync Off";
+                string lipsyncStatus = _targetScript.UseLipsync ? "Enabled - Lipsync On" : "Disabled - Lipsync Off";
                 EditorGUILayout.LabelField("Lipsync:", lipsyncStatus);
 
                 EditorGUI.indentLevel--;
             }
         }
 
-        void DrawLipSync()
+        void Draw_LipSync()
         {
             EditorGUILayout.Space();
-            targetScript.lipSyncFoldout = EditorGUILayout.Foldout(targetScript.lipSyncFoldout, "Lip Sync / Visemes", true, boldFoldoutStyle);
+            
+            string foldoutLabel = $"Lip Sync / {_targetScript.VisemeMode.ToString().Replace('_', ' ')}";
+            _targetScript.lipSyncFoldout = EditorGUILayout.Foldout(_targetScript.lipSyncFoldout, foldoutLabel, true, _boldFoldoutStyle);
 
-            if (targetScript.lipSyncFoldout)
+            if (_targetScript.lipSyncFoldout)
             {
                 EditorGUI.indentLevel++;
 
-                int newVisemeIndex = (int)targetScript.VisemeIdx;
-                newVisemeIndex = EditorGUILayout.Popup("Viseme Index", newVisemeIndex, Enum.GetNames(typeof(AASEmulatorRuntime.VisemeIndex)));
-                HandlePopupScroll(ref newVisemeIndex, 0, Enum.GetNames(typeof(AASEmulatorRuntime.VisemeIndex)).Length - 1);
-                targetScript.VisemeIdx = (AASEmulatorRuntime.VisemeIndex)newVisemeIndex;
-                targetScript.Viseme = EditorGUILayout.IntSlider("Viseme", targetScript.Viseme, 0, 14);
-
-                EditorGUI.indentLevel--;
-            }
-        }
-
-        void DrawBuiltInGestures()
-        {
-            EditorGUILayout.Space();
-            targetScript.builtInGesturesFoldout = EditorGUILayout.Foldout(targetScript.builtInGesturesFoldout, "Built-in inputs / Hand Gestures", true, boldFoldoutStyle);
-
-            if (targetScript.builtInGesturesFoldout)
-            {
-                EditorGUI.indentLevel++;
-
-                int newLeftGestureIndex = EditorGUILayout.Popup("Gesture Left Index", (int)targetScript.GestureLeftIdx, Enum.GetNames(typeof(AASEmulatorRuntime.GestureIndex)));
-                HandlePopupScroll(ref newLeftGestureIndex, 0, Enum.GetNames(typeof(AASEmulatorRuntime.GestureIndex)).Length - 1);
-                if ((AASEmulatorRuntime.GestureIndex)newLeftGestureIndex != targetScript.GestureLeftIdx)
+                switch (_targetScript.VisemeMode)
                 {
-                    targetScript.GestureLeftIdx = (AASEmulatorRuntime.GestureIndex)newLeftGestureIndex;
-                }
-                float newLeftGestureValue = EditorGUILayout.Slider("Gesture Left", targetScript.GestureLeft, -1, 6);
-                if (!Mathf.Approximately(newLeftGestureValue, targetScript.GestureLeft))
-                {
-                    targetScript.GestureLeft = newLeftGestureValue;
-                }
-
-                int newRightGestureIndex = EditorGUILayout.Popup("Gesture Right Index", (int)targetScript.GestureRightIdx, Enum.GetNames(typeof(AASEmulatorRuntime.GestureIndex)));
-                HandlePopupScroll(ref newRightGestureIndex, 0, Enum.GetNames(typeof(AASEmulatorRuntime.GestureIndex)).Length - 1);
-                if ((AASEmulatorRuntime.GestureIndex)newRightGestureIndex != targetScript.GestureRightIdx)
-                {
-                    targetScript.GestureRightIdx = (AASEmulatorRuntime.GestureIndex)newRightGestureIndex;
-                }
-                float newRightGestureValue = EditorGUILayout.Slider("Gesture Right", targetScript.GestureRight, -1, 6);
-                if (!Mathf.Approximately(newRightGestureValue, targetScript.GestureRight))
-                {
-                    targetScript.GestureRight = newRightGestureValue;
+                    case VisemeModeIndex.Visemes:
+                        int newVisemeIndex = (int)_targetScript.VisemeIdx;
+                        newVisemeIndex = EditorGUILayout.Popup("Viseme Index", newVisemeIndex, Enum.GetNames(typeof(VisemeIndex)));
+                        HandlePopupScroll(ref newVisemeIndex, 0, Enum.GetNames(typeof(VisemeIndex)).Length - 1);
+                        _targetScript.VisemeIdx = (VisemeIndex)newVisemeIndex;
+                        _targetScript.Viseme = EditorGUILayout.IntSlider("Viseme", _targetScript.Viseme, 0, 14);
+                        break;
+                    case VisemeModeIndex.Single_Blendshape:
+                    case VisemeModeIndex.Jaw_Bone:
+                        _targetScript.VisemeLoudness = EditorGUILayout.Slider("Viseme Loudness", _targetScript.VisemeLoudness, 0f, 1f);
+                        break;
                 }
 
                 EditorGUI.indentLevel--;
             }
         }
 
-        void DrawBuiltInLocomotion()
+        void Draw_BuiltInGestures()
         {
             EditorGUILayout.Space();
-            targetScript.builtInLocomotionFoldout = EditorGUILayout.Foldout(targetScript.builtInLocomotionFoldout, "Built-in inputs / Locomotion", true, boldFoldoutStyle);
+            _targetScript.builtInGesturesFoldout = EditorGUILayout.Foldout(_targetScript.builtInGesturesFoldout, "Built-in inputs / Hand Gestures", true, _boldFoldoutStyle);
 
-            if (targetScript.builtInLocomotionFoldout)
+            if (_targetScript.builtInGesturesFoldout)
+            {
+                EditorGUI.indentLevel++;
+
+                int newLeftGestureIndex = EditorGUILayout.Popup("Gesture Left Index", (int)_targetScript.GestureLeftIdx, Enum.GetNames(typeof(GestureIndex)));
+                HandlePopupScroll(ref newLeftGestureIndex, 0, Enum.GetNames(typeof(GestureIndex)).Length - 1);
+                if ((GestureIndex)newLeftGestureIndex != _targetScript.GestureLeftIdx)
+                {
+                    _targetScript.GestureLeftIdx = (GestureIndex)newLeftGestureIndex;
+                }
+                float newLeftGestureValue = EditorGUILayout.Slider("Gesture Left", _targetScript.GestureLeft, -1, 6);
+                if (!Mathf.Approximately(newLeftGestureValue, _targetScript.GestureLeft))
+                {
+                    _targetScript.GestureLeft = newLeftGestureValue;
+                }
+
+                int newRightGestureIndex = EditorGUILayout.Popup("Gesture Right Index", (int)_targetScript.GestureRightIdx, Enum.GetNames(typeof(GestureIndex)));
+                HandlePopupScroll(ref newRightGestureIndex, 0, Enum.GetNames(typeof(GestureIndex)).Length - 1);
+                if ((GestureIndex)newRightGestureIndex != _targetScript.GestureRightIdx)
+                {
+                    _targetScript.GestureRightIdx = (GestureIndex)newRightGestureIndex;
+                }
+                float newRightGestureValue = EditorGUILayout.Slider("Gesture Right", _targetScript.GestureRight, -1, 6);
+                if (!Mathf.Approximately(newRightGestureValue, _targetScript.GestureRight))
+                {
+                    _targetScript.GestureRight = newRightGestureValue;
+                }
+
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        void Draw_BuiltInLocomotion()
+        {
+            EditorGUILayout.Space();
+            _targetScript.builtInLocomotionFoldout = EditorGUILayout.Foldout(_targetScript.builtInLocomotionFoldout, "Built-in inputs / Locomotion", true, _boldFoldoutStyle);
+
+            if (_targetScript.builtInLocomotionFoldout)
             {
                 EditorGUI.indentLevel++;
 
                 // Custom joystick GUI
-                targetScript.joystickFoldout = EditorGUILayout.Foldout(targetScript.joystickFoldout, "Joystick", true, boldFoldoutStyle);
-                if (targetScript.joystickFoldout)
+                _targetScript.joystickFoldout = EditorGUILayout.Foldout(_targetScript.joystickFoldout, "Joystick", true, _boldFoldoutStyle);
+                if (_targetScript.joystickFoldout)
                 {
+                    EditorGUILayout.BeginHorizontal();
+
                     Rect joystickRect = GUILayoutUtility.GetRect(100, 100, GUILayout.MaxWidth(100), GUILayout.MaxHeight(100));
-                    Vector2 newMovementValue = Joystick2DField(joystickRect, targetScript.Movement, true);
-                    if (newMovementValue != targetScript.Movement)
-                    {
-                        targetScript.Movement = newMovementValue;
-                    }
-                }
-                // Movement field
-                Vector2 newMovementValue2 = EditorGUILayout.Vector2Field("Movement", targetScript.Movement);
-                if (newMovementValue2 != targetScript.Movement)
-                {
-                    targetScript.Movement = newMovementValue2;
+                    Vector2 newMovementValue = Joystick2DField(joystickRect, _targetScript.Movement, true);
+                    if (newMovementValue != _targetScript.Movement)
+                        _targetScript.Movement = newMovementValue;
+
+                    EditorGUILayout.BeginVertical();
+                    GUILayout.FlexibleSpace();
+                    EditorGUILayout.HelpBox("Double Click to Reset", MessageType.Info);
+                    EditorGUILayout.EndVertical();
+
+                    EditorGUILayout.EndHorizontal();
                 }
 
-                targetScript.Crouching = EditorGUILayout.Toggle("Crouching", targetScript.Crouching);
-                targetScript.Prone = EditorGUILayout.Toggle("Prone", targetScript.Prone);
-                targetScript.Flying = EditorGUILayout.Toggle("Flying", targetScript.Flying);
-                targetScript.Sitting = EditorGUILayout.Toggle("Sitting", targetScript.Sitting);
-                targetScript.Grounded = EditorGUILayout.Toggle("Grounded", targetScript.Grounded);
+                // Movement field
+                Vector2 newMovementValue2 = EditorGUILayout.Vector2Field("Movement", _targetScript.Movement);
+                if (newMovementValue2 != _targetScript.Movement)
+                    _targetScript.Movement = newMovementValue2;
+
+                _targetScript.Crouching = EditorGUILayout.Toggle("Crouching", _targetScript.Crouching);
+                _targetScript.Prone = EditorGUILayout.Toggle("Prone", _targetScript.Prone);
+                _targetScript.Flying = EditorGUILayout.Toggle("Flying", _targetScript.Flying);
+                _targetScript.Sitting = EditorGUILayout.Toggle("Sitting", _targetScript.Sitting);
+                _targetScript.Grounded = EditorGUILayout.Toggle("Grounded", _targetScript.Grounded);
 
                 EditorGUI.indentLevel--;
             }
         }
 
-        void DrawBuiltInEmotes()
+        void Draw_BuiltInEmotes()
         {
             EditorGUILayout.Space();
-            targetScript.builtInEmotesFoldout = EditorGUILayout.Foldout(targetScript.builtInEmotesFoldout, "Built-in inputs / Emotes", true, boldFoldoutStyle);
+            _targetScript.builtInEmotesFoldout = EditorGUILayout.Foldout(_targetScript.builtInEmotesFoldout, "Built-in inputs / Emotes", true, _boldFoldoutStyle);
 
-            if (targetScript.builtInEmotesFoldout)
+            if (_targetScript.builtInEmotesFoldout)
             {
                 EditorGUI.indentLevel++;
 
@@ -172,11 +197,8 @@ namespace NAK.AASEmulator.Editor
                 EditorGUILayout.LabelField("Emote", GUILayout.Width(60));
                 for (int i = 0; i <= 8; i++)
                 {
-                    bool emote = EditorGUILayout.Toggle(targetScript.Emote == i, GUILayout.Width(30));
-                    if (emote)
-                    {
-                        targetScript.Emote = i;
-                    }
+                    bool emote = EditorGUILayout.Toggle(_targetScript.Emote == i, GUILayout.Width(30));
+                    if (emote) _targetScript.Emote = i;
                 }
                 EditorGUILayout.EndHorizontal();
 
@@ -184,96 +206,79 @@ namespace NAK.AASEmulator.Editor
                 EditorGUILayout.LabelField("Toggle", GUILayout.Width(60));
                 for (int i = 0; i <= 8; i++)
                 {
-                    bool toggle = EditorGUILayout.Toggle(targetScript.Toggle == i, GUILayout.Width(30));
-                    if (toggle)
-                    {
-                        targetScript.Toggle = i;
-                    }
+                    bool toggle = EditorGUILayout.Toggle(_targetScript.Toggle == i, GUILayout.Width(30));
+                    if (toggle) _targetScript.Toggle = i;
                 }
                 EditorGUILayout.EndHorizontal();
 
-                targetScript.CancelEmote = EditorGUILayout.Toggle("Cancel Emote", targetScript.CancelEmote);
+                _targetScript.CancelEmote = EditorGUILayout.Toggle("Cancel Emote", _targetScript.CancelEmote);
 
                 EditorGUI.indentLevel--;
             }
         }
-
-        void DrawAnimatorParameters()
+        
+        void Draw_AdditionalParameters()
         {
             EditorGUILayout.Space();
 
-            targetScript.floatsFoldout = EditorGUILayout.Foldout(targetScript.floatsFoldout, "Floats", true, boldFoldoutStyle);
-            if (targetScript.floatsFoldout)
+            _targetScript.floatsFoldout = EditorGUILayout.Foldout(_targetScript.floatsFoldout, "Additional inputs / Floats", true, _boldFoldoutStyle);
+            if (_targetScript.floatsFoldout)
             {
                 EditorGUI.indentLevel++;
-                foreach (AASEmulatorRuntime.FloatParam floatParam in targetScript.Floats)
+                foreach (var floatParam in _targetScript.AnimatorManager.FloatParameters)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(floatParam.machineName, GUILayout.MaxWidth(150));
-                    EditorGUILayout.LabelField(floatParam.synced ? "Synced" : "Local", GUILayout.MaxWidth(75));
+                    EditorGUILayout.LabelField(floatParam.name, GUILayout.MaxWidth(150));
+                    EditorGUILayout.LabelField(floatParam.isLocal ? "Local" : "Synced", GUILayout.MaxWidth(75));
                     EditorGUI.BeginDisabledGroup(floatParam.isControlledByCurve);
                     float newFloatValue = EditorGUILayout.FloatField(floatParam.value);
                     EditorGUI.EndDisabledGroup();
                     if (floatParam.value != newFloatValue)
-                    {
-                        floatParam.value = newFloatValue;
-                        targetScript.m_animator.SetFloat(floatParam.machineName, newFloatValue);
-                    }
+                        _targetScript.AnimatorManager.SetParameter(floatParam.name, newFloatValue);
                     EditorGUILayout.EndHorizontal();
                 }
                 EditorGUI.indentLevel--;
             }
 
-            targetScript.intsFoldout = EditorGUILayout.Foldout(targetScript.intsFoldout, "Ints", true, boldFoldoutStyle);
-            if (targetScript.intsFoldout)
+            _targetScript.intsFoldout = EditorGUILayout.Foldout(_targetScript.intsFoldout, "Additional inputs / Ints", true, _boldFoldoutStyle);
+            if (_targetScript.intsFoldout)
             {
                 EditorGUI.indentLevel++;
-                foreach (AASEmulatorRuntime.IntParam intParam in targetScript.Ints)
+                foreach (var intParam in _targetScript.AnimatorManager.IntParameters)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(intParam.machineName, GUILayout.MaxWidth(150));
-                    EditorGUILayout.LabelField(intParam.synced ? "Synced" : "Local", GUILayout.MaxWidth(75));
+                    EditorGUILayout.LabelField(intParam.name, GUILayout.MaxWidth(150));
+                    EditorGUILayout.LabelField(intParam.isLocal ? "Local" : "Synced", GUILayout.MaxWidth(75));
                     EditorGUI.BeginDisabledGroup(intParam.isControlledByCurve);
                     int newIntValue = EditorGUILayout.IntField(intParam.value);
                     EditorGUI.EndDisabledGroup();
                     if (intParam.value != newIntValue)
-                    {
-                        intParam.value = newIntValue;
-                        targetScript.m_animator.SetInteger(intParam.machineName, newIntValue);
-                    }
+                        _targetScript.AnimatorManager.SetParameter(intParam.name, newIntValue);
                     EditorGUILayout.EndHorizontal();
                 }
                 EditorGUI.indentLevel--;
             }
-
-            targetScript.boolsFoldout = EditorGUILayout.Foldout(targetScript.boolsFoldout, "Bools", true, boldFoldoutStyle);
-            if (targetScript.boolsFoldout)
+            
+            _targetScript.boolsFoldout = EditorGUILayout.Foldout(_targetScript.boolsFoldout, "Additional inputs / Bools", true, _boldFoldoutStyle);
+            if (_targetScript.boolsFoldout)
             {
                 EditorGUI.indentLevel++;
-                foreach (AASEmulatorRuntime.BoolParam boolParam in targetScript.Bools)
+                foreach (var boolParam in _targetScript.AnimatorManager.BoolParameters)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(boolParam.machineName, GUILayout.MaxWidth(150));
-                    EditorGUILayout.LabelField(boolParam.synced ? "Synced" : "Local", GUILayout.MaxWidth(75));
+                    EditorGUILayout.LabelField(boolParam.name, GUILayout.MaxWidth(150));
+                    EditorGUILayout.LabelField(boolParam.isLocal ? "Local" : "Synced", GUILayout.MaxWidth(75));
                     EditorGUI.BeginDisabledGroup(boolParam.isControlledByCurve);
                     bool newBoolValue = EditorGUILayout.Toggle(boolParam.value);
                     EditorGUI.EndDisabledGroup();
                     if (boolParam.value != newBoolValue)
-                    {
-                        boolParam.value = newBoolValue;
-                        targetScript.m_animator.SetBool(boolParam.machineName, newBoolValue);
-                    }
+                        _targetScript.AnimatorManager.SetParameter(boolParam.name, newBoolValue);
                     EditorGUILayout.EndHorizontal();
                 }
                 EditorGUI.indentLevel--;
             }
         }
 
-        void DrawAdvanced()
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
-            targetScript.EnableCCKEmulator = EditorGUILayout.Toggle("Enable CCK Emulator", targetScript.EnableCCKEmulator);
-        }
+        #endregion Drawing Methods
     }
 }

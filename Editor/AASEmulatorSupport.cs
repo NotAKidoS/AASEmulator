@@ -1,87 +1,70 @@
-﻿using NAK.AASEmulator.Runtime;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using static NAK.AASEmulator.Runtime.AASEmulator;
 
 namespace NAK.AASEmulator.Support
 {
     [InitializeOnLoad]
     public static class AASEmulatorSupport
     {
-        // register an event handler when the class is initialized
         static AASEmulatorSupport()
         {
             InitDefaults();
         }
-
-        static void InitDefaults()
+        
+        private static void InitDefaults()
         {
-            AASEmulatorRuntime.addRuntimeDelegate = (runtime) =>
-            {
-                MoveComponentToTop(runtime);
-            };
+            addComponentDelegate = MoveComponentToTop;
         }
 
-        static void MoveComponentToTop(Component c)
+        private static void MoveComponentToTop(Component c)
         {
             GameObject go = c.gameObject;
             Component[] components = go.GetComponents<Component>();
             try
             {
                 if (PrefabUtility.IsPartOfAnyPrefab(go))
-                {
                     PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-                }
             }
-            catch (System.Exception) { }
-            int moveUpCalls = components.Length - 2;
-            if (!PrefabUtility.IsPartOfAnyPrefab(go.GetComponents<Component>()[1]))
+            catch (System.Exception)
             {
-                for (int i = 0; i < moveUpCalls; i++)
-                {
-                    UnityEditorInternal.ComponentUtility.MoveComponentUp(c);
-                }
+                // ignored
             }
+
+            if (PrefabUtility.IsPartOfAnyPrefab(go.GetComponents<Component>()[1])) 
+                return;
+
+            int moveUpCalls = components.Length - 2;
+            for (int i = 0; i < moveUpCalls; i++)
+                UnityEditorInternal.ComponentUtility.MoveComponentUp(c);
         }
 
         [MenuItem("Tools/Enable AAS Emulator")]
         public static void EnableAASTesting()
         {
-            GameObject go;
-            if (Runtime.AASEmulator.Instance == null)
-            {
-                go = GameObject.Find("/AAS Emulator Control");
-                if (go != null)
-                {
-                    go.SetActive(true);
-                }
-                else
-                {
-                    go = new GameObject("AAS Emulator Control");
-                }
-                AddComponentIfMissing<Runtime.AASEmulator>(go);
-                GameObjectUtility.RemoveMonoBehavioursWithMissingScript(go);
-            }
-            else
-            {
-                go = Runtime.AASEmulator.Instance.gameObject;
-            }
-
-            Selection.SetActiveObjectWithContext(go, go);
-            EditorGUIUtility.PingObject(go);
+            Runtime.AASEmulator control = Instance ?? AddComponentIfMissing<Runtime.AASEmulator>(
+                SceneManager.GetActiveScene()
+                    .GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                    .FirstOrDefault(t => t.name == "AAS Emulator Control")?.gameObject ?? new GameObject("AAS Emulator Control"));
+            
+            control.enabled = true;
+            control.gameObject.SetActive(true);
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(control.gameObject);
+            Selection.SetActiveObjectWithContext(control.gameObject, control.gameObject);
+            EditorGUIUtility.PingObject(control.gameObject);
         }
 
         public static T AddComponentIfMissing<T>(this GameObject go) where T : Component
         {
-            if (go.GetComponent<T>() == null)
-            {
-                return go.AddComponent<T>();
-            }
-            return go.GetComponent<T>();
+            return go.GetComponent<T>() ?? go.AddComponent<T>();
         }
-
-        public static T AddComponentIfMissing<T>(this Component go) where T : Component
+        
+        public static T AddComponentIfMissing<T>(this Component component) where T : Component
         {
-            return go.gameObject.AddComponentIfMissing<T>();
+            return component.gameObject.AddComponentIfMissing<T>();
         }
     }
 }
