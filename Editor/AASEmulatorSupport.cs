@@ -16,7 +16,7 @@ namespace NAK.AASEmulator.Support
         
         private static void InitDefaults()
         {
-            addComponentDelegate = MoveComponentToTop;
+            addTopComponentDelegate = MoveComponentToTop;
         }
 
         private static void MoveComponentToTop(Component c)

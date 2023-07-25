@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NAK.AASEmulator.Runtime.Scripts
+namespace NAK.AASEmulator.Runtime
 {
     public static class SimpleLogger
     {

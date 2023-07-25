@@ -1,7 +1,6 @@
 ﻿using ABI.CCK.Components;
-using NAK.AASEmulator.Runtime.Scripts;
-using NAK.AASEmulator.Runtime.SubSystems;
 using System;
+using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
@@ -260,9 +259,7 @@ namespace NAK.AASEmulator.Runtime
 
             if (AASEmulator.Instance == null)
                 SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will run without scene settings!", gameObject);
-            else
-                AASEmulator.addComponentDelegate?.Invoke(this);
-            
+
             // CVR will ensure this on initialization
             if (!gameObject.TryGetComponent<Animator>(out m_animator))
                 m_animator = gameObject.AddComponent<Animator>();
@@ -278,6 +275,9 @@ namespace NAK.AASEmulator.Runtime
 
             AnimatorManager = new AnimatorManager(m_animator);
 
+            AASEmulator.addTopComponentDelegate?.Invoke(this);
+            AASEmulator.runtimeInitializedDelegate?.Invoke(this);
+            
             SetValuesToDefault();
             InitializeVisemeBlendShapeIndexes();
         }
@@ -486,7 +486,7 @@ namespace NAK.AASEmulator.Runtime
             
             AnimatorManager.SetLayerWeight(AnimatorManager.HAND_LEFT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
             AnimatorManager.SetLayerWeight(AnimatorManager.HAND_RIGHT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
-
+            
             if (CancelEmote)
             {
                 CancelEmote = false;

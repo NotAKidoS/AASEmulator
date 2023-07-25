@@ -1,5 +1,5 @@
-﻿using NAK.AASEmulator.Runtime;
-using System;
+﻿using System;
+using NAK.AASEmulator.Runtime;
 using UnityEditor;
 using UnityEngine;
 using static NAK.AASEmulator.Editor.EditorExtensions;

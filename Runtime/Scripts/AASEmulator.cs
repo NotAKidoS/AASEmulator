@@ -1,7 +1,6 @@
 ﻿using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
-using NAK.AASEmulator.Runtime.Scripts;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,13 +8,16 @@ namespace NAK.AASEmulator.Runtime
 {
     public class AASEmulator : MonoBehaviour
     {
-        #region Support Delegate
+        #region Support Delegates
 
-        public delegate void AddComponent(Component runtime);
-        public static AddComponent addComponentDelegate;
-
-        #endregion
+        public delegate void AddTopComponent(Component component);
+        public static AddTopComponent addTopComponentDelegate;
         
+        public delegate void RuntimeInitialized(AASEmulatorRuntime runtime);
+        public static RuntimeInitialized runtimeInitializedDelegate;
+        
+        #endregion
+
         public static AASEmulator Instance;
 
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();

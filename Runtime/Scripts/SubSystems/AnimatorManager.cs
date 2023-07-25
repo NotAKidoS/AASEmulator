@@ -145,6 +145,8 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         // TODO: Figure this shit out
         public readonly Dictionary<string, BaseParam> Parameters = new Dictionary<string, BaseParam>();
+
+        // Temp- only used for GUI
         public readonly List<FloatParam> FloatParameters = new List<FloatParam>();
         public readonly List<IntParam> IntParameters = new List<IntParam>();
         public readonly List<BoolParam> BoolParameters = new List<BoolParam>();
@@ -158,7 +160,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         private int _toggleLayerIdx = -1;
 
         #endregion Animator Info
-
+        
         public AnimatorManager(Animator animator)
         {
             this.animator = animator;
@@ -262,6 +264,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
                 case FloatParam floatParam:
                     return floatParam.value;
 
+                case TriggerParam triggerParam:
+                    return triggerParam.value; // UH
+
                 default:
                     return null;
             }
@@ -274,6 +279,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
             switch (param)
             {
+                case TriggerParam triggerParam:
                 case BoolParam boolParam:
                     return animator.GetBool(param.nameHash);
 
