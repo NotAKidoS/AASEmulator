@@ -26,6 +26,7 @@ namespace NAK.AASEmulator.Runtime
         #region Variables
 
         public List<AASMenuEntry> entries = new List<AASMenuEntry>();
+        public AnimatorManager AnimatorManager => runtime.AnimatorManager;
         private AASEmulatorRuntime runtime;
 
         #endregion
@@ -60,14 +61,75 @@ namespace NAK.AASEmulator.Runtime
 
             foreach (CVRAdvancedSettingsEntry setting in avatarSettings)
             {
-                AASMenuEntry menuEntry = new AASMenuEntry()
+                string[] postfixes;
+                switch (setting.type)
+                {
+                    case SettingsType.Joystick2D:
+                    case SettingsType.InputVector2:
+                        postfixes = new[] { "-x", "-y" };
+                        break;
+                    case SettingsType.Joystick3D:
+                    case SettingsType.InputVector3:
+                        postfixes = new[] { "-x", "-y", "-z" };
+                        break;
+                    case SettingsType.MaterialColor:
+                        postfixes = new[] { "-r", "-g", "-b" };
+                        break;
+                    case SettingsType.GameObjectDropdown:
+                    case SettingsType.GameObjectToggle:
+                    case SettingsType.Slider:
+                    case SettingsType.InputSingle:
+                    default:
+                        postfixes = new[] { "" };
+                        break;
+                }
+                
+                AASMenuEntry menuEntry = new AASMenuEntry
                 {
                     menuName = setting.name,
-                    settingType = setting.type
+                    machineName = setting.machineName,
+                    settingType = setting.type,
                 };
 
-                if (runtime.AnimatorManager.Parameters.TryGetValue(setting.name, out AnimatorManager.BaseParam param))
-                    menuEntry.baseParam = param;
+                if (setting.setting is CVRAdvancesAvatarSettingGameObjectDropdown dropdown)
+                    menuEntry.menuOptions = dropdown.getOptionsList();
+                
+                for (int i = 0; i < postfixes.Length; i++)
+                {
+                    if (AnimatorManager.Parameters.TryGetValue(setting.machineName + postfixes[i],
+                            out AnimatorManager.BaseParam param))
+                    {
+                        float value;
+                        switch (param)
+                        {
+                            case AnimatorManager.FloatParam floatParam:
+                                value = floatParam.defaultValue;
+                                break;
+                            case AnimatorManager.IntParam intParam:
+                                value = intParam.defaultValue;
+                                break;
+                            case AnimatorManager.BoolParam boolParam:
+                                value = boolParam.defaultValue ? 1f : 0f;
+                                break;
+                            default:
+                                value = 0f;
+                                break;
+                        }
+                        
+                        switch (i)
+                        {
+                            case 0:
+                                menuEntry.valueX = value;
+                                break;
+                            case 1:
+                                menuEntry.valueY = value;
+                                break;
+                            case 2:
+                                menuEntry.valueZ = value;
+                                break;
+                        }
+                    }
+                }
 
                 entries.Add(menuEntry);
             }
@@ -78,12 +140,14 @@ namespace NAK.AASEmulator.Runtime
         #endregion
 
         #region Menu Entry Class
-        
+
         public class AASMenuEntry
         {
             public string menuName;
+            public string machineName;
             public SettingsType settingType;
-            public AnimatorManager.BaseParam baseParam;
+            public float valueX, valueY, valueZ;
+            public string[] menuOptions;
         }
 
         #endregion

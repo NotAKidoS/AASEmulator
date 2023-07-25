@@ -171,6 +171,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public void SetLayerWeight(string layerName, float weight)
         {
+            if (string.IsNullOrEmpty(layerName))
+                return;
+
             if (!LayerIndices.TryGetValue(layerName, out var layerIndex))
                 return;
 
@@ -179,6 +182,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public bool SetParameter(string name, object value)
         {
+            if (string.IsNullOrEmpty(name)) 
+                return false;
+
             if (!Parameters.TryGetValue(name, out BaseParam param))
                 return false;
 
@@ -212,6 +218,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public bool SetCoreParameter(string name, object value)
         {
+            if (string.IsNullOrEmpty(name))
+                return false;
+
             if (!CoreParameters.TryGetValue(name, out CoreParam param))
                 return false;
 
@@ -250,6 +259,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public object GetParameter(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             if (!Parameters.TryGetValue(name, out BaseParam param))
                 return null;
 
@@ -274,6 +286,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public object GetParameterFromAnimator(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             if (!Parameters.TryGetValue(name, out BaseParam param))
                 return null;
 
@@ -296,6 +311,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public object GetCoreParameter(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             if (!CoreParameters.TryGetValue(name, out CoreParam param))
                 return null;
 
@@ -322,6 +340,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public object GetCoreParameterFromAnimator(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             if (!CoreParameters.TryGetValue(name, out CoreParam param))
                 return null;
 
