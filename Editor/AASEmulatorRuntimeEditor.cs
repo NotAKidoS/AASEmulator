@@ -232,6 +232,9 @@ namespace NAK.AASEmulator.Editor
         {
             EditorGUILayout.Space();
 
+            if (_targetScript.AnimatorManager == null)
+                return;
+            
             _targetScript.floatsFoldout = EditorGUILayout.Foldout(_targetScript.floatsFoldout, "Additional inputs / Floats", true, _boldFoldoutStyle);
             if (_targetScript.floatsFoldout)
             {
