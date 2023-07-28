@@ -31,12 +31,23 @@ namespace NAK.AASEmulator.Editor
             _targetScript = (AASMenu)target;
             _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
 
+            Draw_ScriptWarning();
+
             Draw_AASMenus();
         }
 
         #endregion Unity / GUI Methods
 
         #region Drawing Methods
+
+        private void Draw_ScriptWarning()
+        {
+            if (_targetScript.isInitializedExternally)
+                return;
+
+            EditorGUILayout.HelpBox("Warning: Do not upload this script with your avatar!\nThis script is prevented from saving to scenes & prefabs.", MessageType.Warning);
+            EditorGUILayout.HelpBox("This script will automatically be added if you enable AASEmulator from the Tools menu (Tools > Enable AAS Emulator).", MessageType.Info);
+        }
 
         private void Draw_AASMenus()
         {

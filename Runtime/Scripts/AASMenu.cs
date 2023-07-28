@@ -1,12 +1,13 @@
-using System.Collections.Generic;
 using ABI.CCK.Scripts;
 using NAK.AASEmulator.Runtime.SubSystems;
+using System.Collections.Generic;
 using UnityEngine;
 using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
 
 namespace NAK.AASEmulator.Runtime
 {
-    public class AASMenu : MonoBehaviour
+    [AddComponentMenu("")]
+    public class AASMenu : EditorOnlyMonoBehaviour
     {
         #region Static Initialization
 
@@ -19,12 +20,13 @@ namespace NAK.AASEmulator.Runtime
                     return;
 
                 AASMenu menu = runtime.gameObject.AddComponent<AASMenu>();
+                menu.isInitializedExternally = true;
                 menu.runtime = runtime;
                 AASEmulator.addTopComponentDelegate?.Invoke(menu);
             };
         }
-        
-        #endregion
+
+        #endregion Static Initialization
 
         #region Variables
 
@@ -32,12 +34,12 @@ namespace NAK.AASEmulator.Runtime
         public AnimatorManager AnimatorManager => runtime.AnimatorManager;
         private AASEmulatorRuntime runtime;
 
-        #endregion
+        #endregion Variables
 
         #region Menu Setup
 
         private void Start() => SetupAASMenus();
-        
+
         private void SetupAASMenus()
         {
             entries.Clear();
@@ -71,13 +73,16 @@ namespace NAK.AASEmulator.Runtime
                     case SettingsType.InputVector2:
                         postfixes = new[] { "-x", "-y" };
                         break;
+
                     case SettingsType.Joystick3D:
                     case SettingsType.InputVector3:
                         postfixes = new[] { "-x", "-y", "-z" };
                         break;
+
                     case SettingsType.MaterialColor:
                         postfixes = new[] { "-r", "-g", "-b" };
                         break;
+
                     case SettingsType.GameObjectDropdown:
                     case SettingsType.GameObjectToggle:
                     case SettingsType.Slider:
@@ -86,7 +91,7 @@ namespace NAK.AASEmulator.Runtime
                         postfixes = new[] { "" };
                         break;
                 }
-                
+
                 AASMenuEntry menuEntry = new AASMenuEntry
                 {
                     menuName = setting.name,
@@ -96,7 +101,7 @@ namespace NAK.AASEmulator.Runtime
 
                 if (setting.setting is CVRAdvancesAvatarSettingGameObjectDropdown dropdown)
                     menuEntry.menuOptions = dropdown.getOptionsList();
-                
+
                 for (int i = 0; i < postfixes.Length; i++)
                 {
                     if (AnimatorManager.Parameters.TryGetValue(setting.machineName + postfixes[i],
@@ -108,25 +113,30 @@ namespace NAK.AASEmulator.Runtime
                             case AnimatorManager.FloatParam floatParam:
                                 value = floatParam.defaultValue;
                                 break;
+
                             case AnimatorManager.IntParam intParam:
                                 value = intParam.defaultValue;
                                 break;
+
                             case AnimatorManager.BoolParam boolParam:
                                 value = boolParam.defaultValue ? 1f : 0f;
                                 break;
+
                             default:
                                 value = 0f;
                                 break;
                         }
-                        
+
                         switch (i)
                         {
                             case 0:
                                 menuEntry.valueX = value;
                                 break;
+
                             case 1:
                                 menuEntry.valueY = value;
                                 break;
+
                             case 2:
                                 menuEntry.valueZ = value;
                                 break;
@@ -140,7 +150,7 @@ namespace NAK.AASEmulator.Runtime
             SimpleLogger.Log($"Successfully created {entries.Count} menu entries for {runtime.m_avatar.name}!", this);
         }
 
-        #endregion
+        #endregion Menu Setup
 
         #region Menu Entry Class
 
@@ -153,6 +163,6 @@ namespace NAK.AASEmulator.Runtime
             public string[] menuOptions;
         }
 
-        #endregion
+        #endregion Menu Entry Class
     }
 }

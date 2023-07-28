@@ -148,10 +148,11 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         // Temp- only used for GUI
         public readonly List<FloatParam> FloatParameters = new List<FloatParam>();
+
         public readonly List<IntParam> IntParameters = new List<IntParam>();
         public readonly List<BoolParam> BoolParameters = new List<BoolParam>();
         public readonly List<TriggerParam> TriggerParameters = new List<TriggerParam>();
-        
+
         public readonly Dictionary<string, int> LayerIndices = new Dictionary<string, int>();
 
         private int _locomotionEmotesLayerIdx = -1;
@@ -160,7 +161,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         private int _toggleLayerIdx = -1;
 
         #endregion Animator Info
-        
+
         public AnimatorManager(Animator animator)
         {
             this.animator = animator;
@@ -182,7 +183,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public bool SetParameter(string name, object value)
         {
-            if (string.IsNullOrEmpty(name)) 
+            if (string.IsNullOrEmpty(name))
                 return false;
 
             if (!Parameters.TryGetValue(name, out BaseParam param))

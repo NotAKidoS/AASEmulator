@@ -11,12 +11,14 @@ namespace NAK.AASEmulator.Runtime
         #region Support Delegates
 
         public delegate void AddTopComponent(Component component);
+
         public static AddTopComponent addTopComponentDelegate;
-        
+
         public delegate void RuntimeInitialized(AASEmulatorRuntime runtime);
+
         public static RuntimeInitialized runtimeInitializedDelegate;
-        
-        #endregion
+
+        #endregion Support Delegates
 
         public static AASEmulator Instance;
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
@@ -24,7 +26,7 @@ namespace NAK.AASEmulator.Runtime
         public bool EmulateAASMenu = false;
 
         #region Unity Methods
-        
+
         private void Awake()
         {
             if (Instance != null)
@@ -84,7 +86,7 @@ namespace NAK.AASEmulator.Runtime
                 if (runtime != null)
                     continue;
                 runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
-                runtime.isInitializedByEmulator = true;
+                runtime.isInitializedExternally = true;
                 m_runtimes.Add(runtime);
             }
         }

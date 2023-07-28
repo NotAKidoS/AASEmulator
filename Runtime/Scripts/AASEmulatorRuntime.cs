@@ -1,12 +1,13 @@
 ﻿using ABI.CCK.Components;
-using System;
 using NAK.AASEmulator.Runtime.SubSystems;
+using System;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
 {
+    [AddComponentMenu("")]
     [HelpURL("https://github.com/NotAKidOnSteam/AASEmulator")]
-    public class AASEmulatorRuntime : MonoBehaviour
+    public class AASEmulatorRuntime : EditorOnlyMonoBehaviour
     {
         #region EditorGUI
 
@@ -70,7 +71,7 @@ namespace NAK.AASEmulator.Runtime
             Single_Blendshape,
             Jaw_Bone,
         }
-        
+
         #endregion CVR_VISEME_GESTURE_INDEX
 
         #region Lip Sync / Visemes
@@ -212,7 +213,7 @@ namespace NAK.AASEmulator.Runtime
         public bool CancelEmote;
 
         #endregion Built-in inputs / Emotes
-        
+
         #region Public Properties
 
         public bool UseLipsync => m_avatar?.useVisemeLipsync ?? false;
@@ -220,7 +221,7 @@ namespace NAK.AASEmulator.Runtime
         public bool UseEyeMovement => m_avatar?.useEyeMovement ?? false;
         public bool UseBlinkBlendshapes => m_avatar?.useBlinkBlendshapes ?? false;
         public bool IsEmotePlaying => m_emotePlaying;
-        
+
         #endregion Public Properties
 
         #region Variables
@@ -230,20 +231,20 @@ namespace NAK.AASEmulator.Runtime
         public CVRAvatar m_avatar;
         public Animator m_animator;
 
-        [HideInInspector]
-        public bool isInitializedByEmulator = false;
-        
         // Emotes
         private bool m_emotePlayed;
+
         private bool m_emotePlaying;
         private bool m_emoteCanceled;
 
         // Visemes
         private float[] m_visemeCurrentBlendShapeWeights;
+
         private int[] m_visemeBlendShapeIndicies;
 
         // Jaw Bone handling
         private HumanPoseHandler m_humanPoseHandler;
+
         private HumanPose m_humanPose;
 
         #endregion Variables
@@ -280,7 +281,7 @@ namespace NAK.AASEmulator.Runtime
 
             AASEmulator.addTopComponentDelegate?.Invoke(this);
             AASEmulator.runtimeInitializedDelegate?.Invoke(this);
-            
+
             SetValuesToDefault();
             InitializeVisemeBlendShapeIndexes();
         }
@@ -355,52 +356,52 @@ namespace NAK.AASEmulator.Runtime
 
         private void Apply_LipSync()
         {
-            if (m_avatar.bodyMesh == null) 
+            if (m_avatar.bodyMesh == null)
                 return;
 
             // TODO: Compare with in-game behaviour. Should be similar enough.
             float useVisemeLipsync = m_avatar.useVisemeLipsync ? 1f : 0f;
-            
+
             switch (m_avatar.visemeMode)
             {
                 case CVRAvatar.CVRAvatarVisemeMode.Visemes:
-                {
-                    if (_visemeSmoothing != m_avatar.visemeSmoothing)
-                        _visemeSmoothingFactor = Mathf.Clamp(100 - m_avatar.visemeSmoothing, 1f, 100f) / 100f;
-                    _visemeSmoothing = m_avatar.visemeSmoothing;
+                    {
+                        if (_visemeSmoothing != m_avatar.visemeSmoothing)
+                            _visemeSmoothingFactor = Mathf.Clamp(100 - m_avatar.visemeSmoothing, 1f, 100f) / 100f;
+                        _visemeSmoothing = m_avatar.visemeSmoothing;
 
-                    if (m_visemeCurrentBlendShapeWeights == null || m_visemeCurrentBlendShapeWeights.Length != m_visemeBlendShapeIndicies.Length)
-                        m_visemeCurrentBlendShapeWeights = new float[m_visemeBlendShapeIndicies.Length];
+                        if (m_visemeCurrentBlendShapeWeights == null || m_visemeCurrentBlendShapeWeights.Length != m_visemeBlendShapeIndicies.Length)
+                            m_visemeCurrentBlendShapeWeights = new float[m_visemeBlendShapeIndicies.Length];
 
-                    for (var i = 0; i < m_visemeBlendShapeIndicies.Length; i++)
-                        if (m_visemeBlendShapeIndicies[i] != -1)
-                            m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[i],
-                                m_visemeCurrentBlendShapeWeights[i] = Mathf.Lerp(m_visemeCurrentBlendShapeWeights[i],
-                                    i == _viseme ? 100.0f : 0.0f, _visemeSmoothingFactor) * useVisemeLipsync);
-                    break;
-                }
+                        for (var i = 0; i < m_visemeBlendShapeIndicies.Length; i++)
+                            if (m_visemeBlendShapeIndicies[i] != -1)
+                                m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[i],
+                                    m_visemeCurrentBlendShapeWeights[i] = Mathf.Lerp(m_visemeCurrentBlendShapeWeights[i],
+                                        i == _viseme ? 100.0f : 0.0f, _visemeSmoothingFactor) * useVisemeLipsync);
+                        break;
+                    }
                 case CVRAvatar.CVRAvatarVisemeMode.SingleBlendshape:
-                {
-                    if (m_visemeBlendShapeIndicies.Length > 0 && m_visemeBlendShapeIndicies[0] != -1)
-                        m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[0],
-                            VisemeLoudness * 100.0f * useVisemeLipsync);
-                    break;
-                }
+                    {
+                        if (m_visemeBlendShapeIndicies.Length > 0 && m_visemeBlendShapeIndicies[0] != -1)
+                            m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[0],
+                                VisemeLoudness * 100.0f * useVisemeLipsync);
+                        break;
+                    }
                 // TODO: Actually test this. For now, I assume it works.
                 case CVRAvatar.CVRAvatarVisemeMode.JawBone when m_animator.isHuman:
-                {
-                    const int jawMuscleIndex = (int)HumanBodyBones.Jaw;
-                    m_humanPoseHandler.GetHumanPose(ref m_humanPose);
-                    if (jawMuscleIndex < m_humanPose.muscles.Length)
                     {
-                        m_humanPose.muscles[jawMuscleIndex] = VisemeLoudness * useVisemeLipsync;
-                        m_humanPoseHandler.SetHumanPose(ref m_humanPose);
+                        const int jawMuscleIndex = (int)HumanBodyBones.Jaw;
+                        m_humanPoseHandler.GetHumanPose(ref m_humanPose);
+                        if (jawMuscleIndex < m_humanPose.muscles.Length)
+                        {
+                            m_humanPose.muscles[jawMuscleIndex] = VisemeLoudness * useVisemeLipsync;
+                            m_humanPoseHandler.SetHumanPose(ref m_humanPose);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
         }
-        
+
         private void Update_EmoteValues_Update()
         {
             if (m_emotePlayed)
@@ -428,7 +429,7 @@ namespace NAK.AASEmulator.Runtime
             m_emotePlayed = Emote != 0;
             m_emoteCanceled = CancelEmote;
         }
-        
+
         private void Update_EmoteValues_FixedUpdate()
         {
             // Cannot play an emote while running
@@ -486,10 +487,10 @@ namespace NAK.AASEmulator.Runtime
             AnimatorManager.SetCoreParameter("MovementY", _movement.y);
             AnimatorManager.SetCoreParameter("Emote", _emote);
             AnimatorManager.SetCoreParameter("Toggle", _toggle);
-            
+
             AnimatorManager.SetLayerWeight(AnimatorManager.HAND_LEFT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
             AnimatorManager.SetLayerWeight(AnimatorManager.HAND_RIGHT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
-            
+
             if (CancelEmote)
             {
                 CancelEmote = false;
