@@ -1,18 +1,19 @@
 ﻿using ABI.CCK.Components;
 using System;
-using System.Collections.Generic;
+using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
 {
+    [HelpURL("https://github.com/NotAKidOnSteam/AASEmulator")]
     public class AASEmulatorRuntime : MonoBehaviour
     {
-        public delegate void AddRuntime(Component runtime);
-        public static AddRuntime addRuntimeDelegate;
+        #region EditorGUI
 
-        // EditorGUI stuff
         public delegate void RepaintRequestHandler();
+
         public static event RepaintRequestHandler OnRequestRepaint;
+
         [HideInInspector] public bool avatarInfoFoldout = true;
         [HideInInspector] public bool lipSyncFoldout = true;
         [HideInInspector] public bool builtInLocomotionFoldout = true;
@@ -22,10 +23,63 @@ namespace NAK.AASEmulator.Runtime
         [HideInInspector] public bool floatsFoldout = false;
         [HideInInspector] public bool intsFoldout = false;
         [HideInInspector] public bool boolsFoldout = false;
-        public bool EnableCCKEmulator;
+
+        private bool m_shouldRepaintEditor = false;
+
+        #endregion EditorGUI
+
+        #region CVR_VISEME_GESTURE_INDEX
+
+        // Oculus Lipsync
+        public enum VisemeIndex
+        {
+            sil,
+            PP,
+            FF,
+            TH,
+            DD,
+            kk,
+            CH,
+            SS,
+            nn,
+            RR,
+            aa,
+            E,
+            I,
+            O,
+            U
+        }
+
+        // -1f to 6f, 0-1f is Fist weight
+        public enum GestureIndex
+        {
+            HandOpen,
+            Neutral,
+            Fist,
+            ThumbsUp,
+            HandGun,
+            Fingerpoint,
+            Victory,
+            RockNRoll
+        }
+
+        // Oculus Lipsync, Loudness, Loudness
+        public enum VisemeModeIndex
+        {
+            Visemes = 0,
+            Single_Blendshape,
+            Jaw_Bone,
+        }
+        
+        #endregion CVR_VISEME_GESTURE_INDEX
+
+        #region Lip Sync / Visemes
 
         [Header("Lip Sync / Visemes")]
-        VisemeIndex _visemeIdx;
+        [SerializeField][Range(0, 14)] private int _viseme;
+
+        private VisemeIndex _visemeIdx;
+
         public VisemeIndex VisemeIdx
         {
             get => _visemeIdx;
@@ -35,7 +89,7 @@ namespace NAK.AASEmulator.Runtime
                 _viseme = (int)value;
             }
         }
-        [SerializeField, Range(0, 14)] int _viseme;
+
         public int Viseme
         {
             get => _viseme;
@@ -46,8 +100,23 @@ namespace NAK.AASEmulator.Runtime
             }
         }
 
+        private int _visemeSmoothing = 50;
+        private float _visemeSmoothingFactor = 0.5f;
+
+        // Single Blendshape & Jaw Bone
+        public float VisemeLoudness { get; set; }
+
+        #endregion Lip Sync / Visemes
+
+        #region Built-in inputs / Hand Gestures
+
         [Header("Built-in inputs / Hand Gestures")]
-        GestureIndex _gestureLeftIdx;
+        [SerializeField][Range(-1, 6)] private float _gestureLeft;
+
+        [SerializeField][Range(-1, 6)] private float _gestureRight;
+        private GestureIndex _gestureLeftIdx;
+        private GestureIndex _gestureRightIdx;
+
         public GestureIndex GestureLeftIdx
         {
             get => _gestureLeftIdx;
@@ -57,8 +126,7 @@ namespace NAK.AASEmulator.Runtime
                 _gestureLeft = (float)value - 1;
             }
         }
-        [SerializeField, Range(-1, 6)]
-        float _gestureLeft;
+
         public float GestureLeft
         {
             get => _gestureLeft;
@@ -70,10 +138,11 @@ namespace NAK.AASEmulator.Runtime
                     _gestureLeftIdx = GestureIndex.Fist;
                     return;
                 }
+
                 _gestureLeftIdx = (GestureIndex)Mathf.FloorToInt(value + 1);
             }
         }
-        GestureIndex _gestureRightIdx;
+
         public GestureIndex GestureRightIdx
         {
             get => _gestureRightIdx;
@@ -83,8 +152,7 @@ namespace NAK.AASEmulator.Runtime
                 _gestureRight = (float)value - 1;
             }
         }
-        [SerializeField, Range(-1, 6)]
-        float _gestureRight;
+
         public float GestureRight
         {
             get => _gestureRight;
@@ -96,12 +164,18 @@ namespace NAK.AASEmulator.Runtime
                     _gestureRightIdx = GestureIndex.Fist;
                     return;
                 }
+
                 _gestureRightIdx = (GestureIndex)Mathf.FloorToInt(value + 1);
             }
         }
 
+        #endregion Built-in inputs / Hand Gestures
+
+        #region Built-in inputs / Locomotion
+
         [Header("Built-in inputs / Locomotion")]
-        Vector2 _movement;
+        [SerializeField] private Vector2 _movement;
+
         public Vector2 Movement
         {
             get => _movement;
@@ -114,368 +188,315 @@ namespace NAK.AASEmulator.Runtime
         public bool Sitting;
         public bool Grounded = true;
 
-        [Header("Built-in inputs / Emotes")]
-        [SerializeField, Range(0, 8)] float _toggle;
-        public int Toggle { get => Mathf.RoundToInt(_toggle); set => _toggle = value; }
+        #endregion Built-in inputs / Locomotion
 
-        [SerializeField, Range(0, 8)] float _emote;
-        public int Emote { get => Mathf.RoundToInt(_emote); set => _emote = value; }
+        #region Built-in inputs / Emotes
+
+        [Header("Built-in inputs / Toggles & Emotes")]
+        [SerializeField][Range(0, 8)] private float _toggle;
+
+        public int Toggle
+        {
+            get => Mathf.RoundToInt(_toggle);
+            set => _toggle = value;
+        }
+
+        [SerializeField][Range(0, 8)] private float _emote;
+
+        public int Emote
+        {
+            get => Mathf.RoundToInt(_emote);
+            set => _emote = value;
+        }
+
         public bool CancelEmote;
 
-        [Header("User-generated inputs")]
-        public List<FloatParam> Floats = new List<FloatParam>();
-        public List<IntParam> Ints = new List<IntParam>();
-        public List<BoolParam> Bools = new List<BoolParam>();
+        #endregion Built-in inputs / Emotes
+        
+        #region Public Properties
 
-        public Dictionary<string, AnimatorControllerParameterType> Core = new Dictionary<string, AnimatorControllerParameterType>();
+        public bool UseLipsync => m_avatar?.useVisemeLipsync ?? false;
+        public VisemeModeIndex VisemeMode => m_avatar != null ? (VisemeModeIndex)m_avatar.visemeMode : VisemeModeIndex.Visemes;
+        public bool UseEyeMovement => m_avatar?.useEyeMovement ?? false;
+        public bool UseBlinkBlendshapes => m_avatar?.useBlinkBlendshapes ?? false;
+        public bool IsEmotePlaying => m_emotePlaying;
+        
+        #endregion Public Properties
 
-        public enum VisemeIndex
-        {
-            sil, PP, FF, TH, DD, kk, CH, SS, nn, RR, aa, E, I, O, U
-        }
-        public enum GestureIndex
-        {
-            HandOpen, Neutral, Fist, ThumbsUp, HandGun, Fingerpoint, Victory, RockNRoll,
-        }
-        public static HashSet<string> BUILTIN_PARAMETERS = new HashSet<string>
-        {
-            "GestureLeft",
-            "GestureRight",
-            "MovementX",
-            "MovementY",
-            "Crouching",
-            "Prone",
-            "Sitting",
-            "Flying",
-            "Toggle",
-            "Emote",
-            "CancelEmote",
-            "Grounded",
-        };
-        [Serializable]
-        public class FloatParam
-        {
-            [HideInInspector] public string name;
-            [HideInInspector] public bool synced;
-            [HideInInspector] public bool isControlledByCurve;
-            public string machineName;
-            public float value;
-        }
-        [Serializable]
-        public class IntParam
-        {
-            [HideInInspector] public string name;
-            [HideInInspector] public bool synced;
-            [HideInInspector] public bool isControlledByCurve;
-            public string machineName;
-            public int value;
-        }
-        [Serializable]
-        public class BoolParam
-        {
-            [HideInInspector] public string name;
-            [HideInInspector] public bool synced;
-            [HideInInspector] public bool isControlledByCurve;
-            public string machineName;
-            public bool value;
-        }
+        #region Variables
 
-        CVRAvatar m_avatar;
+        public AnimatorManager AnimatorManager { get; private set; }
+
+        public CVRAvatar m_avatar;
         public Animator m_animator;
-        int m_locomotionEmotesLayerIdx = -1;
-        int[] m_visemeBlendShapeIdxs;
-        bool m_emotePlayed;
-        bool m_emotePlaying;
-        bool m_emoteCanceled;
-        bool m_isInitialized;
 
-        void Awake()
+        [HideInInspector]
+        public bool isInitializedByEmulator = false;
+        
+        // Emotes
+        private bool m_emotePlayed;
+        private bool m_emotePlaying;
+        private bool m_emoteCanceled;
+
+        // Visemes
+        private float[] m_visemeCurrentBlendShapeWeights;
+        private int[] m_visemeBlendShapeIndicies;
+
+        // Jaw Bone handling
+        private HumanPoseHandler m_humanPoseHandler;
+        private HumanPose m_humanPose;
+
+        #endregion Variables
+
+        #region Initialization
+
+        private void Start()
         {
-            if (addRuntimeDelegate != null)
+            m_avatar = gameObject.GetComponent<CVRAvatar>();
+            if (m_avatar == null)
             {
-                addRuntimeDelegate(this);
-            }
-
-            m_avatar = GetComponent<CVRAvatar>();
-            m_animator = GetComponent<Animator>();
-            AnalyzeAnimator();
-
-            SetDefaultValues();
-
-            InitializeVisemeBlendShapeIndexes();
-
-            m_isInitialized = true;
-        }
-
-        void SetDefaultValues()
-        {
-            Viseme = 0;
-            GestureLeft = 0;
-            GestureRight = 0;
-            Grounded = true;
-        }
-
-        void AnalyzeAnimator()
-        {
-            if (m_avatar == null || m_animator == null) return;
-
-            if (m_animator.runtimeAnimatorController == null)
-            {
-                m_animator.runtimeAnimatorController = m_avatar.overrides.runtimeAnimatorController;
-            }
-            
-            // Check for "Locomotion/Emotes" layer and store its index if found
-            m_locomotionEmotesLayerIdx = m_animator.GetLayerIndex("Locomotion/Emotes");
-            if (m_locomotionEmotesLayerIdx == -1)
-            {
-                Debug.Log("Locomotion/Emotes layer not found.");
-            }
-
-            AnimatorControllerParameter[] parameters = m_animator.parameters;
-            Core.Clear();
-            Floats.Clear();
-            Ints.Clear();
-            Bools.Clear();
-
-            foreach (AnimatorControllerParameter param in parameters)
-            {
-                string paramName = param.name;
-                if (BUILTIN_PARAMETERS.Contains(paramName))
-                {
-                    Core[paramName] = param.type;
-                    continue;
-                }
-
-                bool isLocal = paramName.StartsWith("#");
-
-                switch (param.type)
-                {
-                    case AnimatorControllerParameterType.Bool:
-                        BoolParam boolParam = new BoolParam();
-                        boolParam.name = paramName;
-                        boolParam.machineName = paramName;
-                        boolParam.synced = !isLocal;
-                        boolParam.value = m_animator.GetBool(paramName);
-                        boolParam.isControlledByCurve = m_animator.IsParameterControlledByCurve(paramName);
-                        Bools.Add(boolParam);
-                        break;
-                    case AnimatorControllerParameterType.Int:
-                        IntParam intParam = new IntParam();
-                        intParam.name = paramName;
-                        intParam.machineName = paramName;
-                        intParam.synced = !isLocal;
-                        intParam.value = m_animator.GetInteger(paramName);
-                        intParam.isControlledByCurve = m_animator.IsParameterControlledByCurve(paramName);
-                        Ints.Add(intParam);
-                        break;
-                    case AnimatorControllerParameterType.Float:
-                        FloatParam floatParam = new FloatParam();
-                        floatParam.name = paramName;
-                        floatParam.machineName = paramName;
-                        floatParam.synced = !isLocal;
-                        floatParam.value = m_animator.GetFloat(paramName);
-                        floatParam.isControlledByCurve = m_animator.IsParameterControlledByCurve(paramName);
-                        Floats.Add(floatParam);
-                        break;
-                }
-            }
-        }
-
-        void InitializeVisemeBlendShapeIndexes()
-        {
-            if (m_avatar.bodyMesh != null && m_avatar.visemeBlendshapes != null)
-            {
-                m_visemeBlendShapeIdxs = new int[m_avatar.visemeBlendshapes == null ? 0 : m_avatar.visemeBlendshapes.Length];
-                for (int i = 0; i < m_avatar.visemeBlendshapes.Length; i++)
-                {
-                    m_visemeBlendShapeIdxs[i] = m_avatar.bodyMesh.sharedMesh.GetBlendShapeIndex(m_avatar.visemeBlendshapes[i]);
-                }
-            }
-            else
-            {
-                m_visemeBlendShapeIdxs = new int[0];
-            }
-        }
-
-        void Update()
-        {
-            if (!m_isInitialized)
-            {
+                SimpleLogger.LogError("The CVRAvatar component is missing on the attached gameObject. Destroying...", gameObject);
+                DestroyImmediate(this);
                 return;
             }
 
-            // EditorGUI Repaint
-            CheckAndResetEmoteValues();
+            if (AASEmulator.Instance == null)
+                SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will run without scene settings!", gameObject);
 
-            ApplyLipSync();
-            ApplyAvatarParameters();
+            // CVR will ensure this on initialization
+            if (!gameObject.TryGetComponent<Animator>(out m_animator))
+                m_animator = gameObject.AddComponent<Animator>();
+            m_animator.applyRootMotion = false;
+            m_animator.enabled = true;
 
-            m_emotePlayed = Emote != 0;
-            m_emoteCanceled = CancelEmote;
+            if (m_animator.isHuman)
+            {
+                m_humanPoseHandler?.Dispose();
+                m_humanPoseHandler = new HumanPoseHandler(m_animator.avatar, m_animator.transform);
+                m_humanPoseHandler.GetHumanPose(ref m_humanPose);
+            }
 
-            UpdateCachedParameterValues();
+            AnimatorManager = new AnimatorManager(m_animator);
+
+            AASEmulator.addTopComponentDelegate?.Invoke(this);
+            AASEmulator.runtimeInitializedDelegate?.Invoke(this);
+            
+            SetValuesToDefault();
+            InitializeVisemeBlendShapeIndexes();
         }
 
-        public void ApplyLipSync()
+        private void SetValuesToDefault()
         {
-            if (!m_avatar.useVisemeLipsync) return;
+            _viseme = 0;
+            _visemeIdx = 0;
 
-            if (m_avatar.visemeMode == CVRAvatar.CVRAvatarVisemeMode.Visemes && m_avatar.bodyMesh != null)
+            _gestureLeft = 0f;
+            _gestureLeftIdx = GestureIndex.Neutral;
+
+            _gestureRight = 0f;
+            _gestureRightIdx = GestureIndex.Neutral;
+
+            Grounded = true;
+        }
+
+        private void InitializeVisemeBlendShapeIndexes()
+        {
+            if (m_avatar.bodyMesh != null && m_avatar.visemeBlendshapes != null)
             {
-                for (int i = 0; i < m_visemeBlendShapeIdxs.Length; i++)
-                {
-                    if (m_visemeBlendShapeIdxs[i] != -1)
-                    {
-                        m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIdxs[i], (i == Viseme ? 100.0f : 0.0f));
-                    }
-                }
+                // Rough replication of games iffy viseme smoothing... OVRLipSync only wants 1-100!
+                _visemeSmoothing = m_avatar.visemeSmoothing;
+                _visemeSmoothingFactor = Mathf.Clamp(100 - _visemeSmoothing, 1f, 100f) / 100f;
+
+                m_visemeBlendShapeIndicies =
+                    new int[m_avatar.visemeBlendshapes?.Length ?? 0];
+
+                if (m_avatar.visemeBlendshapes == null)
+                    return;
+
+                for (var i = 0; i < m_avatar.visemeBlendshapes.Length; i++)
+                    m_visemeBlendShapeIndicies[i] =
+                        m_avatar.bodyMesh.sharedMesh.GetBlendShapeIndex(m_avatar.visemeBlendshapes[i]);
+            }
+            else
+            {
+                m_visemeBlendShapeIndicies = Array.Empty<int>();
             }
         }
 
-        void CheckAndResetEmoteValues()
-        {
-            bool shouldRepaint = false;
+        #endregion Initialization
 
+        #region Unity Methods
+
+        private void Update()
+        {
+            Update_EmoteValues_Update();
+            Update_CachedParametersFromAnimator();
+
+            Apply_LipSync();
+            Apply_CoreParameters();
+
+            if (m_shouldRepaintEditor)
+            {
+                OnRequestRepaint?.Invoke();
+                m_shouldRepaintEditor = false;
+            }
+        }
+
+        // fixedDeltaTime is wack in ChilloutVR... Needs proper handling.
+        // Desktop = 0.02 : OpenXR = 0.02 : OpenVR = Headset Refresh Rate
+        private void FixedUpdate()
+        {
+            Update_EmoteValues_FixedUpdate();
+        }
+
+        #endregion Unity Methods
+
+        #region Private Methods
+
+        private void Apply_LipSync()
+        {
+            if (m_avatar.bodyMesh == null) 
+                return;
+
+            // TODO: Compare with in-game behaviour. Should be similar enough.
+            float useVisemeLipsync = m_avatar.useVisemeLipsync ? 1f : 0f;
+            
+            switch (m_avatar.visemeMode)
+            {
+                case CVRAvatar.CVRAvatarVisemeMode.Visemes:
+                {
+                    if (_visemeSmoothing != m_avatar.visemeSmoothing)
+                        _visemeSmoothingFactor = Mathf.Clamp(100 - m_avatar.visemeSmoothing, 1f, 100f) / 100f;
+                    _visemeSmoothing = m_avatar.visemeSmoothing;
+
+                    if (m_visemeCurrentBlendShapeWeights == null || m_visemeCurrentBlendShapeWeights.Length != m_visemeBlendShapeIndicies.Length)
+                        m_visemeCurrentBlendShapeWeights = new float[m_visemeBlendShapeIndicies.Length];
+
+                    for (var i = 0; i < m_visemeBlendShapeIndicies.Length; i++)
+                        if (m_visemeBlendShapeIndicies[i] != -1)
+                            m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[i],
+                                m_visemeCurrentBlendShapeWeights[i] = Mathf.Lerp(m_visemeCurrentBlendShapeWeights[i],
+                                    i == _viseme ? 100.0f : 0.0f, _visemeSmoothingFactor) * useVisemeLipsync);
+                    break;
+                }
+                case CVRAvatar.CVRAvatarVisemeMode.SingleBlendshape:
+                {
+                    if (m_visemeBlendShapeIndicies.Length > 0 && m_visemeBlendShapeIndicies[0] != -1)
+                        m_avatar.bodyMesh.SetBlendShapeWeight(m_visemeBlendShapeIndicies[0],
+                            VisemeLoudness * 100.0f * useVisemeLipsync);
+                    break;
+                }
+                // TODO: Actually test this. For now, I assume it works.
+                case CVRAvatar.CVRAvatarVisemeMode.JawBone when m_animator.isHuman:
+                {
+                    const int jawMuscleIndex = (int)HumanBodyBones.Jaw;
+                    m_humanPoseHandler.GetHumanPose(ref m_humanPose);
+                    if (jawMuscleIndex < m_humanPose.muscles.Length)
+                    {
+                        m_humanPose.muscles[jawMuscleIndex] = VisemeLoudness * useVisemeLipsync;
+                        m_humanPoseHandler.SetHumanPose(ref m_humanPose);
+                    }
+                    break;
+                }
+            }
+        }
+        
+        private void Update_EmoteValues_Update()
+        {
             if (m_emotePlayed)
             {
                 m_emotePlayed = false;
                 Emote = 0;
-                shouldRepaint = true;
+                m_shouldRepaintEditor = true;
             }
 
             if (m_emoteCanceled)
             {
                 m_emoteCanceled = false;
                 CancelEmote = false;
-                shouldRepaint = true;
+                m_shouldRepaintEditor = true;
             }
 
-            bool emotePlaying = IsEmotePlaying();
+            var emotePlaying = AnimatorManager.IsEmotePlaying();
             if (emotePlaying != m_emotePlaying)
             {
                 m_emotePlaying = emotePlaying;
-                shouldRepaint = true;
+                m_shouldRepaintEditor = true;
             }
 
-            // Cannot play an emote while running, this applies next frame
+            // TODO: Emote should return to 0 after 0.1s
+            m_emotePlayed = Emote != 0;
+            m_emoteCanceled = CancelEmote;
+        }
+        
+        private void Update_EmoteValues_FixedUpdate()
+        {
+            // Cannot play an emote while running
             if (Movement.magnitude > 0 && m_emotePlaying)
             {
                 CancelEmote = true;
-                shouldRepaint = true;
-            }
-
-            if (shouldRepaint)
-            {
-                OnRequestRepaint?.Invoke();
+                m_shouldRepaintEditor = true;
             }
         }
 
-        public void UpdateCachedParameterValues()
+        private void Update_CachedParametersFromAnimator()
         {
-            // Update floats
-            foreach (FloatParam floatParam in Floats)
-            {
-                float animatorValue = m_animator.GetFloat(floatParam.machineName);
-                if (floatParam.value != animatorValue)
-                {
-                    floatParam.value = animatorValue;
-                }
-            }
+            // Will not support Animator -> Core Parameter
+            // It is bloat...
 
-            // Update ints
-            foreach (IntParam intParam in Ints)
+            // Additional Parameters
+            foreach (AnimatorManager.BaseParam baseParam in AnimatorManager.Parameters.Values)
             {
-                int animatorValue = m_animator.GetInteger(intParam.machineName);
-                if (intParam.value != animatorValue)
+                switch (baseParam)
                 {
-                    intParam.value = animatorValue;
-                }
-            }
+                    case AnimatorManager.FloatParam floatParam when floatParam.value != m_animator.GetFloat(baseParam.name):
+                        floatParam.value = m_animator.GetFloat(baseParam.name);
+                        m_shouldRepaintEditor = true;
+                        break;
 
-            // Update bools
-            foreach (BoolParam boolParam in Bools)
-            {
-                bool animatorValue = m_animator.GetBool(boolParam.machineName);
-                if (boolParam.value != animatorValue)
-                {
-                    boolParam.value = animatorValue;
+                    case AnimatorManager.IntParam intParam when intParam.value != m_animator.GetInteger(baseParam.name):
+                        intParam.value = m_animator.GetInteger(baseParam.name);
+                        m_shouldRepaintEditor = true;
+                        break;
+
+                    case AnimatorManager.BoolParam boolParam when boolParam.value != m_animator.GetBool(baseParam.name):
+                        boolParam.value = m_animator.GetBool(baseParam.name);
+                        m_shouldRepaintEditor = true;
+                        break;
+
+                    case AnimatorManager.TriggerParam triggerParam when triggerParam.value != m_animator.GetBool(baseParam.name):
+                        triggerParam.value = m_animator.GetBool(baseParam.name);
+                        m_shouldRepaintEditor = true;
+                        break;
                 }
             }
         }
 
-        public bool IsEmotePlaying()
+        // TODO: Rework this so multiple streams of input can set Core Parameters!
+        private void Apply_CoreParameters()
         {
-            if (m_locomotionEmotesLayerIdx != -1)
-            {
-                AnimatorClipInfo[] clipInfo = m_animator.GetCurrentAnimatorClipInfo(m_locomotionEmotesLayerIdx);
-                foreach (var clip in clipInfo)
-                {
-                    if (clip.clip.name.Contains("Emote")) return true;
-                }
-            }
-            return false;
-        }
-
-        public bool IsEyeMovement()
-        {
-            return m_avatar.useEyeMovement;
-        }
-
-        public bool IsBlinkBlendshapes()
-        {
-            return m_avatar.useBlinkBlendshapes;
-        }
-
-        public bool IsLipsync()
-        {
-            return m_avatar.useVisemeLipsync;
-        }
-
-        // TODO: replace this so I can make sure built-in parameters exist first
-        // I also want to integrate this with the older CCKEmulator project
-        public void ApplyAvatarParameters()
-        {
-            SetCoreParameter("GestureLeft", GestureLeft);
-            SetCoreParameter("GestureRight", GestureRight);
-            SetCoreParameter("Grounded", Grounded ? 1 : 0);
-            SetCoreParameter("Crouching", Crouching ? 1 : 0);
-            SetCoreParameter("Prone", Prone ? 1 : 0);
-            SetCoreParameter("Flying", Flying ? 1 : 0);
-            SetCoreParameter("Sitting", Sitting ? 1 : 0);
-            SetCoreParameter("MovementX", Movement.x);
-            SetCoreParameter("MovementY", Movement.y);
-            SetCoreParameter("Emote", Emote);
-            SetCoreParameter("Toggle", Toggle);
-
+            AnimatorManager.SetCoreParameter("GestureLeft", _gestureLeft);
+            AnimatorManager.SetCoreParameter("GestureRight", _gestureRight);
+            AnimatorManager.SetCoreParameter("Grounded", Grounded);
+            AnimatorManager.SetCoreParameter("Crouching", Crouching);
+            AnimatorManager.SetCoreParameter("Prone", Prone);
+            AnimatorManager.SetCoreParameter("Flying", Flying);
+            AnimatorManager.SetCoreParameter("Sitting", Sitting);
+            AnimatorManager.SetCoreParameter("MovementX", _movement.x);
+            AnimatorManager.SetCoreParameter("MovementY", _movement.y);
+            AnimatorManager.SetCoreParameter("Emote", _emote);
+            AnimatorManager.SetCoreParameter("Toggle", _toggle);
+            
+            AnimatorManager.SetLayerWeight(AnimatorManager.HAND_LEFT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
+            AnimatorManager.SetLayerWeight(AnimatorManager.HAND_RIGHT_LAYER_NAME, m_emotePlaying ? 0f : 1f);
+            
             if (CancelEmote)
             {
                 CancelEmote = false;
-                SetCoreParameter("CancelEmote");
+                AnimatorManager.SetCoreParameter("CancelEmote", null);
             }
         }
 
-        public void SetCoreParameter(string parameter, float value = 0)
-        {
-            if (Core.ContainsKey(parameter))
-            {
-                switch (Core[parameter])
-                {
-                    case AnimatorControllerParameterType.Float:
-                        m_animator.SetFloat(parameter, value);
-                        break;
-                    case AnimatorControllerParameterType.Int:
-                        m_animator.SetInteger(parameter, (int)value);
-                        break;
-                    case AnimatorControllerParameterType.Bool:
-                        m_animator.SetBool(parameter, value > 0.5f);
-                        break;
-                    case AnimatorControllerParameterType.Trigger:
-                        m_animator.SetTrigger(parameter);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        #endregion Private Methods
     }
 }

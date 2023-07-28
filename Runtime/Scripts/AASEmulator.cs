@@ -8,88 +8,89 @@ namespace NAK.AASEmulator.Runtime
 {
     public class AASEmulator : MonoBehaviour
     {
+        #region Support Delegates
+
+        public delegate void AddTopComponent(Component component);
+        public static AddTopComponent addTopComponentDelegate;
+        
+        public delegate void RuntimeInitialized(AASEmulatorRuntime runtime);
+        public static RuntimeInitialized runtimeInitializedDelegate;
+        
+        #endregion
+
         public static AASEmulator Instance;
+        private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
 
-        [Header("Global Settings")]
-        public bool EnableEmulator = true;
-        bool _enableEmulator;
+        public bool EmulateAASMenu = false;
 
-        public List<AASEmulatorRuntime> runtimes = new List<AASEmulatorRuntime>();
-        public HashSet<CVRAvatar> m_scannedAvatars = new HashSet<CVRAvatar>();
-
-        void Awake()
+        #region Unity Methods
+        
+        private void Awake()
         {
+            if (Instance != null)
+            {
+                DestroyImmediate(this);
+                return;
+            }
+
             Instance = this;
-            OnEnabledChanged();
+
+            StartEmulator();
         }
 
-        void Update()
+        private void OnDestroy()
         {
-            if (_enableEmulator != EnableEmulator)
-            {
-                OnEnabledChanged();
-            }
+            StopEmulator();
         }
 
-        void OnEnabledChanged()
+        #endregion Unity Methods
+
+        #region Public Methods
+
+        public void StartEmulator()
         {
-            if (EnableEmulator)
-            {
-                OnEmulatorEnabled();
-
-            }
-            else
-            {
-                OnEmulatorDisabled();
-            }
-            _enableEmulator = EnableEmulator;
-        }
-
-        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            ScanForAvatars(scene);
-        }
-
-        void ScanForAvatars(Scene scene)
-        {
-            var targetScene = scene;
-            CVRAvatar[] avatars = targetScene.GetRootGameObjects()
-                .SelectMany(x => x.GetComponentsInChildren<CVRAvatar>(true)).ToArray();
-            m_scannedAvatars.UnionWith(avatars);
-
-            Debug.Log(this.name + ": Setting up AASEmulator on " + avatars.Length + " avatars.", this);
-
-            foreach (var avatar in avatars)
-            {
-                AASEmulatorRuntime runtime = avatar.GetComponent<AASEmulatorRuntime>();
-                if (runtime == null)
-                {
-                    runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
-                    runtimes.Add(runtime);
-                }
-            }
-        }
-
-        void OnEmulatorEnabled()
-        {
-            ScanForAvatars(gameObject.scene);
+            //ScanForAvatars(gameObject.scene);
+            SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
-        void OnEmulatorDisabled()
+        public void StopEmulator()
         {
-            foreach (var runtime in runtimes)
-            {
+            foreach (AASEmulatorRuntime runtime in m_runtimes)
                 Destroy(runtime);
-            }
-            runtimes.Clear();
-            m_scannedAvatars.Clear();
+
+            m_runtimes.Clear();
+            //m_scannedAvatars.Clear();
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
-        void OnDestroy()
+        #endregion Public Methods
+
+        #region Private Methods
+
+        private void ScanForAvatars(Scene scene)
         {
-            OnEmulatorDisabled();
+            var avatars = scene.GetRootGameObjects()
+                .SelectMany(x => x.GetComponentsInChildren<CVRAvatar>(true)).ToArray();
+            //m_scannedAvatars.UnionWith(avatars);
+
+            // TODO: Only log new avatar additions
+            SimpleLogger.Log("Setting up AASEmulator on " + avatars.Length + " avatars.",
+                this);
+
+            foreach (CVRAvatar avatar in avatars)
+            {
+                AASEmulatorRuntime runtime = avatar.GetComponent<AASEmulatorRuntime>();
+                if (runtime != null)
+                    continue;
+                runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
+                runtime.isInitializedByEmulator = true;
+                m_runtimes.Add(runtime);
+            }
         }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => ScanForAvatars(scene);
+
+        #endregion Private Methods
     }
 }
