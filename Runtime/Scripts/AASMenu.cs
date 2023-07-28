@@ -15,6 +15,9 @@ namespace NAK.AASEmulator.Runtime
         {
             AASEmulator.runtimeInitializedDelegate = runtime =>
             {
+                if (AASEmulator.Instance != null && !AASEmulator.Instance.EmulateAASMenu)
+                    return;
+
                 AASMenu menu = runtime.gameObject.AddComponent<AASMenu>();
                 menu.runtime = runtime;
                 AASEmulator.addTopComponentDelegate?.Invoke(menu);

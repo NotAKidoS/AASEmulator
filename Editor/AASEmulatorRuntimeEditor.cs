@@ -30,7 +30,13 @@ namespace NAK.AASEmulator.Editor
         {
             _targetScript = (AASEmulatorRuntime)target;
             _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
-            
+
+            if (!_targetScript.isInitializedByEmulator)
+            {
+                EditorGUILayout.HelpBox("Warning: Do not upload this script with your avatar!", MessageType.Warning);
+                EditorGUILayout.HelpBox("This script will automatically be added if you enable AASEmulator from the Tools menu (Tools > Enable AAS Emulator).", MessageType.Info);
+            }
+
             Draw_AvatarInfo();
             
             Draw_LipSync();

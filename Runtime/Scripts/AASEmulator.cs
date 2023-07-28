@@ -19,9 +19,9 @@ namespace NAK.AASEmulator.Runtime
         #endregion
 
         public static AASEmulator Instance;
-
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
-        //private readonly HashSet<CVRAvatar> m_scannedAvatars = new HashSet<CVRAvatar>();
+
+        public bool EmulateAASMenu = false;
 
         #region Unity Methods
         
@@ -84,6 +84,7 @@ namespace NAK.AASEmulator.Runtime
                 if (runtime != null)
                     continue;
                 runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
+                runtime.isInitializedByEmulator = true;
                 m_runtimes.Add(runtime);
             }
         }

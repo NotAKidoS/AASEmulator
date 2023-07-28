@@ -230,6 +230,9 @@ namespace NAK.AASEmulator.Runtime
         public CVRAvatar m_avatar;
         public Animator m_animator;
 
+        [HideInInspector]
+        public bool isInitializedByEmulator = false;
+        
         // Emotes
         private bool m_emotePlayed;
         private bool m_emotePlaying;
