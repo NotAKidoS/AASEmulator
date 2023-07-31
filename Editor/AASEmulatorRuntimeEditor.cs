@@ -23,13 +23,19 @@ namespace NAK.AASEmulator.Editor
         {
             OnRequestRepaint -= Repaint;
             OnRequestRepaint += Repaint;
+            _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
+            
+            // Initialize on select
+            _targetScript = (AASEmulatorRuntime)target;
+            if (!_targetScript.IsInitialized())
+                _targetScript.Initialize();
         }
         private void OnDisable() => OnRequestRepaint -= Repaint;
         
         public override void OnInspectorGUI()
         {
-            _targetScript = (AASEmulatorRuntime)target;
-            _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
+            if (_targetScript == null)
+                return;
 
             Draw_ScriptWarning();
 
@@ -56,7 +62,7 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.HelpBox("This script will automatically be added if you enable AASEmulator from the Tools menu (Tools > Enable AAS Emulator).", MessageType.Info);
         }
 
-        void Draw_AvatarInfo()
+        private void Draw_AvatarInfo()
         {
             EditorGUILayout.Space();
             _targetScript.avatarInfoFoldout = EditorGUILayout.Foldout(_targetScript.avatarInfoFoldout, "Avatar Info", true, _boldFoldoutStyle);
@@ -85,7 +91,7 @@ namespace NAK.AASEmulator.Editor
             }
         }
 
-        void Draw_LipSync()
+        private void Draw_LipSync()
         {
             EditorGUILayout.Space();
             
@@ -115,7 +121,7 @@ namespace NAK.AASEmulator.Editor
             }
         }
 
-        void Draw_BuiltInGestures()
+        private void Draw_BuiltInGestures()
         {
             EditorGUILayout.Space();
             _targetScript.builtInGesturesFoldout = EditorGUILayout.Foldout(_targetScript.builtInGesturesFoldout, "Built-in inputs / Hand Gestures", true, _boldFoldoutStyle);
@@ -152,7 +158,7 @@ namespace NAK.AASEmulator.Editor
             }
         }
 
-        void Draw_BuiltInLocomotion()
+        private void Draw_BuiltInLocomotion()
         {
             EditorGUILayout.Space();
             _targetScript.builtInLocomotionFoldout = EditorGUILayout.Foldout(_targetScript.builtInLocomotionFoldout, "Built-in inputs / Locomotion", true, _boldFoldoutStyle);
@@ -195,7 +201,7 @@ namespace NAK.AASEmulator.Editor
             }
         }
 
-        void Draw_BuiltInEmotes()
+        private void Draw_BuiltInEmotes()
         {
             EditorGUILayout.Space();
             _targetScript.builtInEmotesFoldout = EditorGUILayout.Foldout(_targetScript.builtInEmotesFoldout, "Built-in inputs / Emotes", true, _boldFoldoutStyle);
@@ -227,8 +233,8 @@ namespace NAK.AASEmulator.Editor
                 EditorGUI.indentLevel--;
             }
         }
-        
-        void Draw_AdditionalParameters()
+
+        private void Draw_AdditionalParameters()
         {
             EditorGUILayout.Space();
 

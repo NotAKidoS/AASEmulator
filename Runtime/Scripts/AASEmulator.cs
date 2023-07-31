@@ -23,8 +23,14 @@ namespace NAK.AASEmulator.Runtime
         public static AASEmulator Instance;
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
 
+        public bool OnlyInitializeOnSelect = false;
         public bool EmulateAASMenu = false;
 
+        [HideInInspector]
+        public RuntimeAnimatorController defaultRuntimeController;
+        private string controllerGUID = "ff926e022d914b84e8975ba6188a26f0";
+        private string controllerPath = "Assets/ABI.CCK/Animations/AvatarAnimator.controller";
+        
         #region Unity Methods
 
         private void Awake()
@@ -37,6 +43,7 @@ namespace NAK.AASEmulator.Runtime
 
             Instance = this;
 
+            LoadDefaultCCKController();
             StartEmulator();
         }
 
@@ -69,6 +76,19 @@ namespace NAK.AASEmulator.Runtime
         #endregion Public Methods
 
         #region Private Methods
+
+        private void LoadDefaultCCKController()
+        {
+#if UNITY_EDITOR
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(controllerGUID);
+            Object controllerObject = UnityEditor.AssetDatabase.LoadAssetAtPath<Object>(path) 
+                ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Object>(controllerPath);
+            
+            defaultRuntimeController = controllerObject as RuntimeAnimatorController;
+#endif
+            if (defaultRuntimeController == null)
+                SimpleLogger.LogError("Failed to load default avatar controller. Did you move the ABI.CCK folder?", gameObject);
+        }
 
         private void ScanForAvatars(Scene scene)
         {

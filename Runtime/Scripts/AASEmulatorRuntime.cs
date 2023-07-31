@@ -233,19 +233,18 @@ namespace NAK.AASEmulator.Runtime
 
         // Emotes
         private bool m_emotePlayed;
-
         private bool m_emotePlaying;
         private bool m_emoteCanceled;
 
         // Visemes
         private float[] m_visemeCurrentBlendShapeWeights;
-
         private int[] m_visemeBlendShapeIndicies;
 
         // Jaw Bone handling
         private HumanPoseHandler m_humanPoseHandler;
-
         private HumanPose m_humanPose;
+
+        private bool m_isInitialized = false;
 
         #endregion Variables
 
@@ -253,6 +252,23 @@ namespace NAK.AASEmulator.Runtime
 
         private void Start()
         {
+            if (!AASEmulator.Instance.OnlyInitializeOnSelect)
+                Initialize();
+        }
+
+        public bool IsInitialized() => m_isInitialized;
+        
+        public void Initialize()
+        {
+            if (m_isInitialized)
+                return;
+
+            if (AASEmulator.Instance == null)
+            {
+                SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will not run!", gameObject);
+                return;
+            }
+
             m_avatar = gameObject.GetComponent<CVRAvatar>();
             if (m_avatar == null)
             {
@@ -261,12 +277,16 @@ namespace NAK.AASEmulator.Runtime
                 return;
             }
 
-            if (AASEmulator.Instance == null)
-                SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will run without scene settings!", gameObject);
-
             // CVR will ensure this on initialization
             if (!gameObject.TryGetComponent<Animator>(out m_animator))
                 m_animator = gameObject.AddComponent<Animator>();
+
+            // CVR replaces old CCK animation clips, but we won't even bother trying
+            if (m_avatar.overrides != null)
+                m_animator.runtimeAnimatorController = m_avatar.overrides;
+            else
+                m_animator.runtimeAnimatorController = AASEmulator.Instance.defaultRuntimeController;
+
             m_animator.applyRootMotion = false;
             m_animator.enabled = true;
 
@@ -281,6 +301,7 @@ namespace NAK.AASEmulator.Runtime
 
             AASEmulator.addTopComponentDelegate?.Invoke(this);
             AASEmulator.runtimeInitializedDelegate?.Invoke(this);
+            m_isInitialized = true;
 
             SetValuesToDefault();
             InitializeVisemeBlendShapeIndexes();
@@ -330,6 +351,9 @@ namespace NAK.AASEmulator.Runtime
 
         private void Update()
         {
+            if (!m_isInitialized)
+                return;
+
             Update_EmoteValues_Update();
             Update_CachedParametersFromAnimator();
 
@@ -347,6 +371,9 @@ namespace NAK.AASEmulator.Runtime
         // Desktop = 0.02 : OpenXR = 0.02 : OpenVR = Headset Refresh Rate
         private void FixedUpdate()
         {
+            if (!m_isInitialized)
+                return;
+
             Update_EmoteValues_FixedUpdate();
         }
 
