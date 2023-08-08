@@ -231,6 +231,8 @@ namespace NAK.AASEmulator.Runtime
         public CVRAvatar m_avatar;
         public Animator m_animator;
 
+        public bool m_isExternalControl = false;
+
         // Emotes
         private bool m_emotePlayed;
         private bool m_emotePlaying;
@@ -357,7 +359,6 @@ namespace NAK.AASEmulator.Runtime
             Update_EmoteValues_Update();
             Update_CachedParametersFromAnimator();
 
-            Apply_LipSync();
             Apply_CoreParameters();
 
             if (m_shouldRepaintEditor)
@@ -365,6 +366,14 @@ namespace NAK.AASEmulator.Runtime
                 OnRequestRepaint?.Invoke();
                 m_shouldRepaintEditor = false;
             }
+        }
+
+        private void LateUpdate()
+        {
+            if (!m_isInitialized)
+                return;
+
+            Apply_LipSync();
         }
 
         // fixedDeltaTime is wack in ChilloutVR... Needs proper handling.
@@ -386,7 +395,6 @@ namespace NAK.AASEmulator.Runtime
             if (m_avatar.bodyMesh == null)
                 return;
 
-            // TODO: Compare with in-game behaviour. Should be similar enough.
             float useVisemeLipsync = m_avatar.useVisemeLipsync ? 1f : 0f;
 
             switch (m_avatar.visemeMode)
@@ -414,7 +422,6 @@ namespace NAK.AASEmulator.Runtime
                                 VisemeLoudness * 100.0f * useVisemeLipsync);
                         break;
                     }
-                // TODO: Actually test this. For now, I assume it works.
                 case CVRAvatar.CVRAvatarVisemeMode.JawBone when m_animator.isHuman:
                     {
                         const int jawMuscleIndex = (int)HumanBodyBones.Jaw;
