@@ -12,7 +12,6 @@ namespace NAK.AASEmulator.Editor
     {
         #region Variables
 
-        private GUIStyle _boldFoldoutStyle;
         private AASMenu _targetScript;
 
         #endregion
@@ -23,13 +22,14 @@ namespace NAK.AASEmulator.Editor
         {
             OnRequestRepaint -= Repaint;
             OnRequestRepaint += Repaint;
+            _targetScript = (AASMenu)target;
         }
         private void OnDisable() => OnRequestRepaint -= Repaint;
 
         public override void OnInspectorGUI()
         {
-            _targetScript = (AASMenu)target;
-            _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
+            if (_targetScript == null)
+                return;
 
             Draw_ScriptWarning();
 

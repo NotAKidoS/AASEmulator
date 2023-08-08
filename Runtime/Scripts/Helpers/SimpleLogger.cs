@@ -4,6 +4,8 @@ namespace NAK.AASEmulator.Runtime
 {
     public static class SimpleLogger
     {
+        // NOTE: Pass gameobject instead of component, as context is lost if component is removed.
+
         private const string projectName = nameof(AASEmulator);
         private const string messageColor = "orange";
 

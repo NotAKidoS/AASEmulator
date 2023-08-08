@@ -2,7 +2,6 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static NAK.AASEmulator.Runtime.AASEmulator;
 
 namespace NAK.AASEmulator.Support
 {
@@ -16,7 +15,7 @@ namespace NAK.AASEmulator.Support
         
         private static void InitDefaults()
         {
-            addTopComponentDelegate = MoveComponentToTop;
+            Runtime.AASEmulator.addTopComponentDelegate = MoveComponentToTop;
         }
 
         private static void MoveComponentToTop(Component c)
@@ -44,7 +43,7 @@ namespace NAK.AASEmulator.Support
         [MenuItem("Tools/Enable AAS Emulator")]
         public static void EnableAASTesting()
         {
-            Runtime.AASEmulator control = Instance ?? AddComponentIfMissing<Runtime.AASEmulator>(
+            Runtime.AASEmulator control = Runtime.AASEmulator.Instance ?? AddComponentIfMissing<Runtime.AASEmulator>(
                 SceneManager.GetActiveScene()
                     .GetRootGameObjects()
                     .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
