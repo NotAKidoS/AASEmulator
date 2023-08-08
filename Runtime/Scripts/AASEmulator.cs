@@ -22,6 +22,7 @@ namespace NAK.AASEmulator.Runtime
 
         public static AASEmulator Instance;
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
+        private readonly HashSet<GameObject> m_scannedAvatars = new HashSet<GameObject>();
 
         public bool OnlyInitializeOnSelect = false;
         public bool EmulateAASMenu = false;
@@ -33,7 +34,7 @@ namespace NAK.AASEmulator.Runtime
         
         #region Unity Methods
 
-        private void Awake()
+        private void Start()
         {
             if (Instance != null)
             {
@@ -58,9 +59,9 @@ namespace NAK.AASEmulator.Runtime
 
         public void StartEmulator()
         {
-            //ScanForAvatars(gameObject.scene);
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
+            ScanForAvatars(gameObject.scene);
         }
 
         public void StopEmulator()
@@ -69,7 +70,7 @@ namespace NAK.AASEmulator.Runtime
                 Destroy(runtime);
 
             m_runtimes.Clear();
-            //m_scannedAvatars.Clear();
+            m_scannedAvatars.Clear();
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
@@ -94,21 +95,24 @@ namespace NAK.AASEmulator.Runtime
         {
             var avatars = scene.GetRootGameObjects()
                 .SelectMany(x => x.GetComponentsInChildren<CVRAvatar>(true)).ToArray();
-            //m_scannedAvatars.UnionWith(avatars);
 
-            // TODO: Only log new avatar additions
-            SimpleLogger.Log("Setting up AASEmulator on " + avatars.Length + " avatars.",
-                this);
+            int newAvatarsCount = 0;
 
             foreach (CVRAvatar avatar in avatars)
-            {
-                AASEmulatorRuntime runtime = avatar.GetComponent<AASEmulatorRuntime>();
-                if (runtime != null)
-                    continue;
-                runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
-                runtime.isInitializedExternally = true;
-                m_runtimes.Add(runtime);
-            }
+                if (!m_scannedAvatars.Contains(avatar.gameObject))
+                {
+                    newAvatarsCount++;
+                    m_scannedAvatars.Add(avatar.gameObject);
+                    if (avatar.GetComponent<AASEmulatorRuntime>() == null)
+                    {
+                        var runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
+                        runtime.isInitializedExternally = true;
+                        m_runtimes.Add(runtime);
+                    }
+                }
+
+            if (newAvatarsCount > 0)
+                SimpleLogger.Log("Setting up AASEmulator on " + newAvatarsCount + " new avatars.", gameObject);
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => ScanForAvatars(scene);
