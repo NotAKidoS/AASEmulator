@@ -245,6 +245,7 @@ namespace NAK.AASEmulator.Runtime
         // Jaw Bone handling
         private HumanPoseHandler m_humanPoseHandler;
         private HumanPose m_humanPose;
+        private static int _jawBoneMuscleIndex = -1;
 
         private bool m_isInitialized = false;
 
@@ -254,8 +255,16 @@ namespace NAK.AASEmulator.Runtime
 
         private void Start()
         {
-            if (!AASEmulator.Instance.OnlyInitializeOnSelect)
-                Initialize();
+            if (AASEmulator.Instance == null)
+            {
+                SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will not run!", gameObject);
+                return;
+            }
+
+            if (AASEmulator.Instance.OnlyInitializeOnSelect)
+                return;
+
+            Initialize();
         }
 
         public bool IsInitialized() => m_isInitialized;
@@ -306,7 +315,7 @@ namespace NAK.AASEmulator.Runtime
             m_isInitialized = true;
 
             SetValuesToDefault();
-            InitializeVisemeBlendShapeIndexes();
+            InitializeLipSync();
         }
 
         private void SetValuesToDefault()
@@ -323,8 +332,12 @@ namespace NAK.AASEmulator.Runtime
             Grounded = true;
         }
 
-        private void InitializeVisemeBlendShapeIndexes()
+        private void InitializeLipSync()
         {
+            // Get jaw bone index
+            if (_jawBoneMuscleIndex == -1)
+                _jawBoneMuscleIndex = Array.FindIndex(HumanTrait.MuscleName, muscle => muscle.Contains("Jaw"));
+
             if (m_avatar.bodyMesh != null && m_avatar.visemeBlendshapes != null)
             {
                 // Rough replication of games iffy viseme smoothing... OVRLipSync only wants 1-100!
@@ -424,18 +437,17 @@ namespace NAK.AASEmulator.Runtime
                     }
                 case CVRAvatar.CVRAvatarVisemeMode.JawBone when m_animator.isHuman:
                     {
-                        const int jawMuscleIndex = (int)HumanBodyBones.Jaw;
                         m_humanPoseHandler.GetHumanPose(ref m_humanPose);
-                        if (jawMuscleIndex < m_humanPose.muscles.Length)
+                        if (_jawBoneMuscleIndex < m_humanPose.muscles.Length)
                         {
-                            m_humanPose.muscles[jawMuscleIndex] = VisemeLoudness * useVisemeLipsync;
+                            m_humanPose.muscles[_jawBoneMuscleIndex] = VisemeLoudness * useVisemeLipsync;
                             m_humanPoseHandler.SetHumanPose(ref m_humanPose);
                         }
                         break;
                     }
             }
         }
-
+        
         private void Update_EmoteValues_Update()
         {
             if (m_emotePlayed)

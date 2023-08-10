@@ -22,7 +22,7 @@ namespace NAK.AASEmulator.Runtime
 
         public static AASEmulator Instance;
         private readonly List<AASEmulatorRuntime> m_runtimes = new List<AASEmulatorRuntime>();
-        private readonly HashSet<GameObject> m_scannedAvatars = new HashSet<GameObject>();
+        private readonly HashSet<CVRAvatar> m_scannedAvatars = new HashSet<CVRAvatar>();
 
         public bool OnlyInitializeOnSelect = false;
         public bool EmulateAASMenu = false;
@@ -93,26 +93,24 @@ namespace NAK.AASEmulator.Runtime
 
         private void ScanForAvatars(Scene scene)
         {
-            var avatars = scene.GetRootGameObjects()
-                .SelectMany(x => x.GetComponentsInChildren<CVRAvatar>(true)).ToArray();
+            var newAvatars = scene.GetRootGameObjects()
+                .SelectMany(x => x.GetComponentsInChildren<CVRAvatar>(true))
+                .Where(avatar => !m_scannedAvatars.Contains(avatar))
+                .ToList();
 
-            int newAvatarsCount = 0;
-
-            foreach (CVRAvatar avatar in avatars)
-                if (!m_scannedAvatars.Contains(avatar.gameObject))
+            foreach (CVRAvatar avatar in newAvatars)
+            {
+                if (avatar.GetComponent<AASEmulatorRuntime>() == null)
                 {
-                    newAvatarsCount++;
-                    m_scannedAvatars.Add(avatar.gameObject);
-                    if (avatar.GetComponent<AASEmulatorRuntime>() == null)
-                    {
-                        var runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
-                        runtime.isInitializedExternally = true;
-                        m_runtimes.Add(runtime);
-                    }
+                    var runtime = avatar.gameObject.AddComponent<AASEmulatorRuntime>();
+                    runtime.isInitializedExternally = true;
+                    m_runtimes.Add(runtime);
                 }
-
-            if (newAvatarsCount > 0)
-                SimpleLogger.Log("Setting up AASEmulator on " + newAvatarsCount + " new avatars.", gameObject);
+                m_scannedAvatars.Add(avatar);
+            }
+            
+            if (newAvatars.Count > 0)
+                SimpleLogger.Log("Setting up AASEmulator on " + newAvatars.Count + " new avatars.", gameObject);
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => ScanForAvatars(scene);
