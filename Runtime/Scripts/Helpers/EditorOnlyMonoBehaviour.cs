@@ -18,8 +18,8 @@ namespace NAK.AASEmulator.Runtime
         private void SetHideFlags()
         {
 #if UNITY_EDITOR
-            if ((this.hideFlags & HideFlags.DontSaveInEditor) != HideFlags.DontSaveInEditor)
-                this.hideFlags |= HideFlags.DontSaveInEditor;
+            if ((hideFlags & HideFlags.DontSaveInEditor) != HideFlags.DontSaveInEditor)
+                hideFlags |= HideFlags.DontSaveInEditor;
 #endif
         }
     }

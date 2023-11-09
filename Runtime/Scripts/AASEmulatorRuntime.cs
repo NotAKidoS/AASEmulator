@@ -187,8 +187,9 @@ namespace NAK.AASEmulator.Runtime
         public bool Prone;
         public bool Flying;
         public bool Sitting;
+        public bool Swimming;
         public bool Grounded = true;
-
+        
         #endregion Built-in inputs / Locomotion
 
         #region Built-in inputs / Emotes
@@ -222,6 +223,8 @@ namespace NAK.AASEmulator.Runtime
         public bool UseBlinkBlendshapes => m_avatar?.useBlinkBlendshapes ?? false;
         public bool IsEmotePlaying => m_emotePlaying;
 
+        public bool IsActiveOffset => m_activeOffset;
+
         #endregion Public Properties
 
         #region Variables
@@ -230,9 +233,7 @@ namespace NAK.AASEmulator.Runtime
 
         public CVRAvatar m_avatar;
         public Animator m_animator;
-
-        public bool m_isExternalControl = false;
-
+        
         // Emotes
         private bool m_emotePlayed;
         private bool m_emotePlaying;
@@ -242,10 +243,14 @@ namespace NAK.AASEmulator.Runtime
         private float[] m_visemeCurrentBlendShapeWeights;
         private int[] m_visemeBlendShapeIndicies;
 
-        // Jaw Bone handling
+        // Humanoid handling
         private HumanPoseHandler m_humanPoseHandler;
         private HumanPose m_humanPose;
+        private Transform m_hipTransform;
         private static int _jawBoneMuscleIndex = -1;
+        
+        // IK handling
+        private bool m_activeOffset;
 
         private bool m_isInitialized = false;
 
@@ -293,10 +298,9 @@ namespace NAK.AASEmulator.Runtime
                 m_animator = gameObject.AddComponent<Animator>();
 
             // CVR replaces old CCK animation clips, but we won't even bother trying
-            if (m_avatar.overrides != null)
-                m_animator.runtimeAnimatorController = m_avatar.overrides;
-            else
-                m_animator.runtimeAnimatorController = AASEmulator.Instance.defaultRuntimeController;
+            m_animator.runtimeAnimatorController = m_avatar.overrides != null
+                ? m_avatar.overrides
+                : AASEmulator.Instance.defaultRuntimeController;
 
             m_animator.applyRootMotion = false;
             m_animator.enabled = true;
@@ -306,6 +310,7 @@ namespace NAK.AASEmulator.Runtime
                 m_humanPoseHandler?.Dispose();
                 m_humanPoseHandler = new HumanPoseHandler(m_animator.avatar, m_animator.transform);
                 m_humanPoseHandler.GetHumanPose(ref m_humanPose);
+                m_hipTransform = m_animator.GetBoneTransform(HumanBodyBones.Hips);
             }
 
             AnimatorManager = new AnimatorManager(m_animator);
@@ -387,6 +392,7 @@ namespace NAK.AASEmulator.Runtime
                 return;
 
             Apply_LipSync();
+            Apply_ActiveBodyOffset();
         }
 
         // fixedDeltaTime is wack in ChilloutVR... Needs proper handling.
@@ -402,7 +408,7 @@ namespace NAK.AASEmulator.Runtime
         #endregion Unity Methods
 
         #region Private Methods
-
+        
         private void Apply_LipSync()
         {
             if (m_avatar.bodyMesh == null)
@@ -446,6 +452,20 @@ namespace NAK.AASEmulator.Runtime
                         break;
                     }
             }
+        }
+        
+        private void Apply_ActiveBodyOffset()
+        {
+            m_activeOffset = !Sitting && !m_emotePlaying;
+            
+            // Also does not run in FBT
+            if (!m_activeOffset)
+                return;
+            
+            Vector3 headPosition = m_animator.GetBoneTransform(HumanBodyBones.Head).position;
+            Vector3 offset = headPosition - m_animator.transform.position;
+            offset.y = 0f; // let me use with {} please :(
+            m_hipTransform.position -= offset;
         }
         
         private void Update_EmoteValues_Update()
@@ -529,6 +549,7 @@ namespace NAK.AASEmulator.Runtime
             AnimatorManager.SetCoreParameter("Prone", Prone);
             AnimatorManager.SetCoreParameter("Flying", Flying);
             AnimatorManager.SetCoreParameter("Sitting", Sitting);
+            AnimatorManager.SetCoreParameter("Swimming", Swimming);
             AnimatorManager.SetCoreParameter("MovementX", _movement.x);
             AnimatorManager.SetCoreParameter("MovementY", _movement.y);
             AnimatorManager.SetCoreParameter("Emote", _emote);

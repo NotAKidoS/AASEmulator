@@ -71,22 +71,21 @@ namespace NAK.AASEmulator.Editor
             {
                 EditorGUI.indentLevel++;
 
-                // Add label to show if an emote is currently playing or not
                 string emoteStatus = _targetScript.IsEmotePlaying ? "Playing an Emote - Tracking Disabled" : "Not Playing an Emote - Tracking Enabled";
                 EditorGUILayout.LabelField("Emote Status:", emoteStatus);
                 
-                // Add label to show the eye movement status
+                string activeBodyOffsetStatus = _targetScript.IsActiveOffset ? "Enabled - Body Offset On" : "Disabled - Body Offset Off";
+                EditorGUILayout.LabelField("Body Offset:", activeBodyOffsetStatus);
+                
                 string eyeMovementStatus = _targetScript.UseEyeMovement ? "Enabled - Eye Look On" : "Disabled - Eye Look Off";
                 EditorGUILayout.LabelField("Eye Movement:", eyeMovementStatus);
 
-                // Add label to show the blink blendshapes status
                 string blinkBlendshapesStatus = _targetScript.UseBlinkBlendshapes ? "Enabled - Eye Blink On" : "Disabled - Eye Blink Off";
                 EditorGUILayout.LabelField("Blink Blendshapes:", blinkBlendshapesStatus);
 
-                // Add label to show the lipsync status
                 string lipsyncStatus = _targetScript.UseLipsync ? "Enabled - Lipsync On" : "Disabled - Lipsync Off";
                 EditorGUILayout.LabelField("Lipsync:", lipsyncStatus);
-
+                
                 EditorGUI.indentLevel--;
             }
         }
@@ -195,6 +194,7 @@ namespace NAK.AASEmulator.Editor
                 _targetScript.Prone = EditorGUILayout.Toggle("Prone", _targetScript.Prone);
                 _targetScript.Flying = EditorGUILayout.Toggle("Flying", _targetScript.Flying);
                 _targetScript.Sitting = EditorGUILayout.Toggle("Sitting", _targetScript.Sitting);
+                _targetScript.Swimming = EditorGUILayout.Toggle("Swimming", _targetScript.Swimming);
                 _targetScript.Grounded = EditorGUILayout.Toggle("Grounded", _targetScript.Grounded);
 
                 EditorGUI.indentLevel--;

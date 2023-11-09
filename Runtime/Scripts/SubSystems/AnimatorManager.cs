@@ -31,6 +31,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             { "Prone", AnimatorControllerParameterType.Bool },
             { "Sitting", AnimatorControllerParameterType.Bool },
             { "Flying", AnimatorControllerParameterType.Bool },
+            { "Swimming", AnimatorControllerParameterType.Bool },
             // Triggers
             { "CancelEmote", AnimatorControllerParameterType.Trigger },
         };
@@ -371,13 +372,11 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         public bool IsEmotePlaying()
         {
-            if (_locomotionEmotesLayerIdx != -1)
-            {
-                var clipInfo = animator.GetCurrentAnimatorClipInfo(_locomotionEmotesLayerIdx);
-                return clipInfo.Any(clip => clip.clip.name.Contains("Emote"));
-            }
-
-            return false;
+            if (_locomotionEmotesLayerIdx == -1) 
+                return false;
+            
+            var clipInfo = animator.GetCurrentAnimatorClipInfo(_locomotionEmotesLayerIdx);
+            return clipInfo.Any(clip => clip.clip.name.Contains("Emote"));
         }
 
         #endregion Public Methods
