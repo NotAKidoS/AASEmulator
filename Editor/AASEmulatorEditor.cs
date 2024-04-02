@@ -46,8 +46,8 @@ namespace NAK.AASEmulator.Editor
             _core = (AASEmulatorCore)target;
             
             // version check state this session
-            _hasCheckedForUpdates = SessionState.GetBool(CHECKED_VERSION_THIS_SESSION_KEY, false);
-            _isLatestVersion = SessionState.GetBool(LATEST_VERSION_KEY, false);
+            _isLatestVersion = SessionState.GetBool(LATEST_VERSION_OR_NEWER_KEY, false);
+            _lastLatestVersionFound = SessionState.GetString(LATEST_VERSION_KEY, string.Empty);
             
             // serialized properties
             m_onlyInitializeOnSelect = serializedObject.FindProperty(nameof(AASEmulatorCore.OnlyInitializeOnSelect));
@@ -196,22 +196,27 @@ namespace NAK.AASEmulator.Editor
                 return;
             }
             
-            if (_hasCheckedForUpdates)
+            if (_lastLatestVersionFound != string.Empty)
             {
                 if (_isLatestVersion)
                 {
-                    EditorGUILayout.HelpBox("You are using the latest version of AAS Emulator.", MessageType.Info);
+                    EditorGUILayout.HelpBox("You are using the latest version (or newer) of AAS Emulator: v" + AASEmulatorCore.AAS_EMULATOR_VERSION, MessageType.Info);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox("A new version of the AAS Emulator is available.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("A new version of the AAS Emulator is available: v" + _lastLatestVersionFound, MessageType.Warning);
                     if (GUILayout.Button("Open Latest Release Page")) Application.OpenURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL + "/releases/latest");
                 }
             }
-            else if (GUILayout.Button("Check for Updates"))
-            {
+            
+            
+            // will be disabled for 5 seconds, but GUI wont redraw when time is up
+            EditorGUI.BeginDisabledGroup(!CanCheckForUpdates);
+            
+            if (GUILayout.Button("Check for Updates")) 
                 CheckForUpdates();
-            }
+            
+            EditorGUI.EndDisabledGroup();
         }
         
         #endregion Drawing Methods
@@ -221,11 +226,17 @@ namespace NAK.AASEmulator.Editor
         private static Coroutine _versionCheckCoroutine;
         
         private static bool _isLatestVersion;
+        private static string _lastLatestVersionFound;
         private static bool _isAttemptingVersionCheck;
-        private static bool _hasCheckedForUpdates;
+        
+        // "rate limiting"
+        public static bool CanCheckForUpdates => Time.time - _lastVersionCheckTime > VERSION_CHECK_RATE_LIMIT;
+        private static float _lastVersionCheckTime;
+        private const float VERSION_CHECK_RATE_LIMIT = 5f; // seconds
         
         private const string CHECKED_VERSION_THIS_SESSION_KEY = nameof(AASEmulatorCore) + "_CheckedVersionThisSession";
         private const string LATEST_VERSION_KEY = nameof(AASEmulatorCore) + "_LatestVersion";
+        private const string LATEST_VERSION_OR_NEWER_KEY = nameof(AASEmulatorCore) + "_IsLatestVersionOrNewer";
 
         [Serializable]
         private class GitHubRelease
@@ -238,11 +249,11 @@ namespace NAK.AASEmulator.Editor
             // mono behaviour owns the coroutine (this works in-editor surprisingly)
             if (_versionCheckCoroutine != null) _core.StopCoroutine(_versionCheckCoroutine);
             _versionCheckCoroutine = _core.StartCoroutine(CheckForUpdatesCoroutine()); 
-            _hasCheckedForUpdates = true;
         }
         
         private IEnumerator CheckForUpdatesCoroutine()
         {
+            _lastVersionCheckTime = Time.time;
             _isAttemptingVersionCheck = true;
             
             using UnityWebRequest webRequest = UnityWebRequest.Get(AASEmulatorCore.AAS_EMULATOR_GIT_API_RELEASE_URL);
@@ -270,12 +281,15 @@ namespace NAK.AASEmulator.Editor
                 {
                     SimpleLogger.LogError("Invalid version format. Current Version: " + AASEmulatorCore.AAS_EMULATOR_VERSION + ", New Version: " + latestVersion, _core.gameObject);
                 }
+                
+                // store latest version found
+                SessionState.SetString(LATEST_VERSION_KEY, newVersion.ToString());
+                SessionState.SetBool(LATEST_VERSION_OR_NEWER_KEY, _isLatestVersion);
             }
             
             _versionCheckCoroutine = null;
             _isAttemptingVersionCheck = false;
             SessionState.SetBool(CHECKED_VERSION_THIS_SESSION_KEY, true);
-            SessionState.SetBool(LATEST_VERSION_KEY, _isLatestVersion);
         }
 
         #endregion Version Check Implementation
