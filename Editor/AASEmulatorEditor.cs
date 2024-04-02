@@ -22,6 +22,8 @@ namespace NAK.AASEmulator.Editor
         private SerializedProperty m_emulateAASMenu;
         private SerializedProperty m_defaultRuntimeController;
         
+        private SerializedProperty m_emulateEyeBlinking;
+        
         private SerializedProperty m_emulateAdvancedTagging;
         private SerializedProperty m_tagLoudAudio;
         private SerializedProperty m_tagLongRangeAudio;
@@ -52,6 +54,8 @@ namespace NAK.AASEmulator.Editor
             m_emulateAASMenu = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAASMenu));
             m_defaultRuntimeController = serializedObject.FindProperty(nameof(AASEmulatorCore.defaultRuntimeController));
             
+            m_emulateEyeBlinking = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateEyeBlinking));
+            
             m_emulateAdvancedTagging = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAdvancedTagging));
             m_tagLoudAudio = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.LoudAudio));
             m_tagLongRangeAudio = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.LongRangeAudio));
@@ -80,6 +84,9 @@ namespace NAK.AASEmulator.Editor
             Draw_Emulator_Configuration();
             EditorGUILayout.Space();
             
+            Draw_Emulator_AvatarSim();
+            EditorGUILayout.Space();
+            
             Draw_Emulator_AdvTagging();
             EditorGUILayout.Space();
             
@@ -101,6 +108,12 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.PropertyField(m_onlyInitializeOnSelect);
             EditorGUILayout.PropertyField(m_emulateAASMenu);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
+        }
+
+        private void Draw_Emulator_AvatarSim()
+        {
+            EditorGUILayout.LabelField("Emulator / Avatar Simulation", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_emulateEyeBlinking);
         }
 
         private void Draw_Emulator_AdvTagging()

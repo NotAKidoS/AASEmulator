@@ -18,16 +18,15 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         private static void OnRuntimeInitialized(AASEmulatorRuntime runtime)
         {
-            if (AASEmulatorCore.Instance == null || !AASEmulatorCore.Instance.EmulateAdvancedTagging)
+            if (AASEmulatorCore.Instance == null 
+                || !AASEmulatorCore.Instance.EmulateAdvancedTagging)
                 return;
 
             CVRAvatar avatar = runtime.m_avatar;
             if (avatar == null || !avatar.enableAdvancedTagging)
             {
                 if (avatar.advancedTaggingList.Count > 0)
-                    SimpleLogger.LogError("Advanced Tagging entries found, but Advanced Tagging is disabled!");
-                    
-                SimpleLogger.LogError("Unable to run Advanced Tagging: CVRAvatar is missing or advanced tagging disabled");
+                    SimpleLogger.LogError("Advanced Tagging entries found, but Advanced Tagging is disabled!", avatar.gameObject);
                 return;
             }
 
@@ -43,11 +42,11 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             var advTaggingList = avatar != null ? avatar.advancedTaggingList : null;
             if (advTaggingList == null || advTaggingList.Count == 0)
             {
-                SimpleLogger.LogWarning("Advanced Tagging List is empty or null");
+                SimpleLogger.LogWarning("Advanced Tagging List is empty or null!");
                 return;
             }
             
-            SimpleLogger.Log($"Executing {advTaggingList.Count} Advanced Tagging entries for {avatar.name}");
+            SimpleLogger.Log($"Executing {advTaggingList.Count} Advanced Tagging entries for {avatar.name}.");
 
             foreach (CVRAvatarAdvancedTaggingEntry advTaggingEntry in advTaggingList)
                 ExecuteAdvancedTagging(advTaggingEntry);
@@ -57,7 +56,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         {
             if (advTaggingEntry == null)
             {
-                SimpleLogger.LogError("Unable to execute Advanced Tagging: Entry is missing");
+                SimpleLogger.LogError("Unable to execute Advanced Tagging: Entry is missing!");
                 return;
             }
 

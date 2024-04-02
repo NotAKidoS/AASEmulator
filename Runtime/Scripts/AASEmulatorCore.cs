@@ -15,7 +15,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.0.9";
+        public const string AAS_EMULATOR_VERSION = "0.1.0";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -44,6 +44,28 @@ namespace NAK.AASEmulator.Runtime
         private readonly List<AASEmulatorRuntime> m_runtimes = new();
         private readonly HashSet<CVRAvatar> m_scannedAvatars = new();
 
+        #region Settings / Emulator Config
+        
+        [Tooltip("Only initialize AASEmulatorRuntime on avatar selection. This may help with any initial hitch when entering play mode.")]
+        public bool OnlyInitializeOnSelect = true;
+        
+        [Tooltip("Emulate the AAS Menu on all avatars. This will add the AASMenu component to all avatars in the scene.")]
+        public bool EmulateAASMenu = true;
+
+        [Tooltip("The default animator controller to use for avatars that don't have an override controller set. Only change this if you know what you're doing.")]
+        public RuntimeAnimatorController defaultRuntimeController;
+        private const string CONTROLLER_GUID = "ff926e022d914b84e8975ba6188a26f0";
+        private const string CONTROLLER_PATH = "Assets/ABI.CCK/Animations/AvatarAnimator.controller";
+        
+        #endregion Settings / Emulator Config
+
+        #region Settings / Avatar Tracking
+
+        [Tooltip("Emulate the simulated eye blinking on avatars.")]
+        public bool EmulateEyeBlinking = true;
+
+        #endregion Settings / Avatar Tracking
+        
         #region Settings / Advanced Tagging
 
         [Tooltip("Enable emulating Advanced Tagging. This will strip GameObjects tagged with Advanced Tagging based on the settings defined below.")]
@@ -79,22 +101,7 @@ namespace NAK.AASEmulator.Runtime
             public bool Horror;
         }
         
-        #endregion
-
-        #region Settings / Emulator Config
-        
-        [Tooltip("Only initialize AASEmulatorRuntime on avatar selection. This may help with any initial hitch when entering play mode.")]
-        public bool OnlyInitializeOnSelect = true;
-        
-        [Tooltip("Emulate the AAS Menu on all avatars. This will add the AASMenu component to all avatars in the scene.")]
-        public bool EmulateAASMenu = true;
-
-        [Tooltip("The default animator controller to use for avatars that don't have an override controller set. Only change this if you know what you're doing.")]
-        public RuntimeAnimatorController defaultRuntimeController;
-        private const string CONTROLLER_GUID = "ff926e022d914b84e8975ba6188a26f0";
-        private const string CONTROLLER_PATH = "Assets/ABI.CCK/Animations/AvatarAnimator.controller";
-        
-        #endregion
+        #endregion Settings / Advanced Tagging
         
         #region Unity Methods
 

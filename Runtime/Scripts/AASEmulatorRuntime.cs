@@ -242,6 +242,7 @@ namespace NAK.AASEmulator.Runtime
         #region Variables
 
         public AnimatorManager AnimatorManager { get; private set; }
+        private AvatarBlinkManager BlinkManager { get; set; }
 
         public CVRAvatar m_avatar;
         public Animator m_animator;
@@ -321,6 +322,7 @@ namespace NAK.AASEmulator.Runtime
             }
 
             AnimatorManager = new AnimatorManager(m_animator);
+            BlinkManager = new AvatarBlinkManager(m_avatar);
 
             AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
             AASEmulatorCore.runtimeInitializedDelegate?.Invoke(this);
@@ -400,6 +402,10 @@ namespace NAK.AASEmulator.Runtime
 
             Apply_LipSync();
             Apply_ActiveBodyOffset();
+            
+            // kind of lazy but works for now
+            BlinkManager.IsEnabled = UseBlinkBlendshapes && AASEmulatorCore.Instance.EmulateEyeBlinking;
+            BlinkManager.OnLateUpdate();
         }
 
         // fixedDeltaTime is wack in ChilloutVR... Needs proper handling.
