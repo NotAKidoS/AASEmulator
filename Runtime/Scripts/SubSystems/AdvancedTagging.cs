@@ -12,20 +12,26 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            AASEmulatorCore.runtimeInitializedDelegate += runtime =>
+            AASEmulatorCore.runtimeInitializedDelegate -= OnRuntimeInitialized; // unsub from last play mode session
+            AASEmulatorCore.runtimeInitializedDelegate += OnRuntimeInitialized;
+        }
+
+        private static void OnRuntimeInitialized(AASEmulatorRuntime runtime)
+        {
+            if (AASEmulatorCore.Instance == null || !AASEmulatorCore.Instance.EmulateAdvancedTagging)
+                return;
+
+            CVRAvatar avatar = runtime.m_avatar;
+            if (avatar == null || !avatar.enableAdvancedTagging)
             {
-                if (AASEmulatorCore.Instance == null || !AASEmulatorCore.Instance.EmulateAdvancedTagging)
-                    return;
+                if (avatar.advancedTaggingList.Count > 0)
+                    SimpleLogger.LogError("Advanced Tagging entries found, but Advanced Tagging is disabled!");
+                    
+                SimpleLogger.LogError("Unable to run Advanced Tagging: CVRAvatar is missing or advanced tagging disabled");
+                return;
+            }
 
-                CVRAvatar avatar = runtime.m_avatar;
-                if (avatar == null || !avatar.enableAdvancedTagging)
-                {
-                    SimpleLogger.LogError("Unable to run Advanced Tagging: CVRAvatar is missing or advanced tagging disabled");
-                    return;
-                }
-
-                RunAdvancedTagging(avatar);
-            };
+            RunAdvancedTagging(avatar);
         }
         
         #endregion Static Initialization

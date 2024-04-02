@@ -77,7 +77,10 @@ namespace NAK.AASEmulator.Editor
             
             serializedObject.Update();
             
-            Draw_Settings();
+            Draw_Emulator_Configuration();
+            EditorGUILayout.Space();
+            
+            Draw_Emulator_AdvTagging();
             EditorGUILayout.Space();
             
             Draw_Links();
@@ -92,17 +95,21 @@ namespace NAK.AASEmulator.Editor
         
         #region Drawing Methods
         
-        private void Draw_Settings()
+        private void Draw_Emulator_Configuration()
         {
             EditorGUILayout.LabelField("Emulator / Configuration", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_onlyInitializeOnSelect);
             EditorGUILayout.PropertyField(m_emulateAASMenu);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
-            
-            EditorGUILayout.Space();
-            
+        }
+
+        private void Draw_Emulator_AdvTagging()
+        {
             EditorGUILayout.LabelField("Emulator / Advanced Tagging", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_emulateAdvancedTagging);
+            
+            if (Application.isPlaying)
+                EditorGUILayout.HelpBox("Advanced Tagging settings cannot be dynamically changed while in play mode. They only apply on initial avatar load!", MessageType.Warning);
             
             EditorGUILayout.BeginHorizontal("box");
             EditorGUI.indentLevel++;
@@ -126,6 +133,9 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.PropertyField(m_tagGore);
             EditorGUILayout.PropertyField(m_tagNudity);
             
+            EditorGUILayout.Space(8);
+            EditorGUILayout.HelpBox("When an Advanced Tagging entry is evaluated and found to be blocked, the target GameObject is destroyed and the Fallback GameObject is set active.", MessageType.None);
+            
             EditorGUILayout.EndVertical();
             
             EditorGUI.indentLevel--;
@@ -148,7 +158,7 @@ namespace NAK.AASEmulator.Editor
         private void Draw_VersionCheck()
         {
             EditorGUILayout.LabelField("Version Check", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Current Version: " + AASEmulatorCore.AAS_EMULATOR_VERSION);
+            EditorGUILayout.LabelField("Current Version: v" + AASEmulatorCore.AAS_EMULATOR_VERSION);
 
             if (_isAttemptingVersionCheck)
             {

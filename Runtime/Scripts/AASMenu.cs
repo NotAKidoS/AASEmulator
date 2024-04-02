@@ -15,17 +15,20 @@ namespace NAK.AASEmulator.Runtime
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            AASEmulatorCore.runtimeInitializedDelegate += runtime =>
-            {
-                if (AASEmulatorCore.Instance != null 
-                    && !AASEmulatorCore.Instance.EmulateAASMenu)
-                    return;
+            AASEmulatorCore.runtimeInitializedDelegate -= OnRuntimeInitialized; // unsub from last play mode session
+            AASEmulatorCore.runtimeInitializedDelegate += OnRuntimeInitialized;
+        }
+        
+        private static void OnRuntimeInitialized(AASEmulatorRuntime runtime)
+        {
+            if (AASEmulatorCore.Instance != null 
+                && !AASEmulatorCore.Instance.EmulateAASMenu)
+                return;
 
-                AASMenu menu = runtime.gameObject.AddComponent<AASMenu>();
-                menu.isInitializedExternally = true;
-                menu.runtime = runtime;
-                AASEmulatorCore.addTopComponentDelegate?.Invoke(menu);
-            };
+            AASMenu menu = runtime.gameObject.AddComponent<AASMenu>();
+            menu.isInitializedExternally = true;
+            menu.runtime = runtime;
+            AASEmulatorCore.addTopComponentDelegate?.Invoke(menu);
         }
 
         #endregion Static Initialization
