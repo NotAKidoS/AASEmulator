@@ -6,7 +6,7 @@ using UnityEngine;
 namespace NAK.AASEmulator.Runtime
 {
     [AddComponentMenu("")]
-    [HelpURL("https://github.com/NotAKidOnSteam/AASEmulator")]
+    [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
     public class AASEmulatorRuntime : EditorOnlyMonoBehaviour
     {
         #region EditorGUI
@@ -260,13 +260,13 @@ namespace NAK.AASEmulator.Runtime
 
         private void Start()
         {
-            if (AASEmulator.Instance == null)
+            if (AASEmulatorCore.Instance == null)
             {
                 SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will not run!", gameObject);
                 return;
             }
 
-            if (AASEmulator.Instance.OnlyInitializeOnSelect)
+            if (AASEmulatorCore.Instance.OnlyInitializeOnSelect)
                 return;
 
             Initialize();
@@ -279,7 +279,7 @@ namespace NAK.AASEmulator.Runtime
             if (m_isInitialized)
                 return;
 
-            if (AASEmulator.Instance == null)
+            if (AASEmulatorCore.Instance == null)
             {
                 SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Emulator will not run!", gameObject);
                 return;
@@ -300,7 +300,7 @@ namespace NAK.AASEmulator.Runtime
             // CVR replaces old CCK animation clips, but we won't even bother trying
             m_animator.runtimeAnimatorController = m_avatar.overrides != null
                 ? m_avatar.overrides
-                : AASEmulator.Instance.defaultRuntimeController;
+                : AASEmulatorCore.Instance.defaultRuntimeController;
 
             m_animator.applyRootMotion = false;
             m_animator.enabled = true;
@@ -315,8 +315,8 @@ namespace NAK.AASEmulator.Runtime
 
             AnimatorManager = new AnimatorManager(m_animator);
 
-            AASEmulator.addTopComponentDelegate?.Invoke(this);
-            AASEmulator.runtimeInitializedDelegate?.Invoke(this);
+            AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
+            AASEmulatorCore.runtimeInitializedDelegate?.Invoke(this);
             m_isInitialized = true;
 
             SetValuesToDefault();

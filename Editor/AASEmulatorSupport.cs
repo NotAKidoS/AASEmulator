@@ -15,7 +15,7 @@ namespace NAK.AASEmulator.Support
         
         private static void InitDefaults()
         {
-            Runtime.AASEmulator.addTopComponentDelegate = MoveComponentToTop;
+            Runtime.AASEmulatorCore.addTopComponentDelegate = MoveComponentToTop;
         }
 
         private static void MoveComponentToTop(Component c)
@@ -43,7 +43,7 @@ namespace NAK.AASEmulator.Support
         [MenuItem("Tools/Enable AAS Emulator")]
         public static void EnableAASTesting()
         {
-            Runtime.AASEmulator control = Runtime.AASEmulator.Instance ?? AddComponentIfMissing<Runtime.AASEmulator>(
+            Runtime.AASEmulatorCore control = Runtime.AASEmulatorCore.Instance ?? AddComponentIfMissing<Runtime.AASEmulatorCore>(
                 SceneManager.GetActiveScene()
                     .GetRootGameObjects()
                     .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
