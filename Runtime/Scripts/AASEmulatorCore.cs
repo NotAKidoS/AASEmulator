@@ -58,10 +58,10 @@ namespace NAK.AASEmulator.Runtime
             FlashingColors = true,
             FlashingLights = true,
             Violence = true,
-            Gore = true,
             Suggestive = true,
-            Nudity = true,
-            Horror = true
+            Horror = true,
+            Gore = false, // Not enabled by default
+            Nudity = false, // Not enabled by default
         };
         
         [Serializable]

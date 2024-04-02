@@ -125,20 +125,37 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.PropertyField(m_tagHorror);
             EditorGUILayout.PropertyField(m_tagSuggestive);
             
+            EditorGUI.indentLevel--;
             EditorGUILayout.EndVertical();
             
             EditorGUILayout.BeginVertical();
             
-            EditorGUILayout.HelpBox("The following tags are locked behind the Mature Content DLC.", MessageType.None);
+            EditorGUILayout.HelpBox("The following tags are locked behind the Mature Content DLC and are disabled by default for new users.", MessageType.None);
+
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_tagGore);
             EditorGUILayout.PropertyField(m_tagNudity);
+            EditorGUI.indentLevel--;
             
             EditorGUILayout.Space(8);
-            EditorGUILayout.HelpBox("When an Advanced Tagging entry is evaluated and found to be blocked, the target GameObject is destroyed and the Fallback GameObject is set active.", MessageType.None);
+            EditorGUILayout.HelpBox("When an AdvTagging entry is found to be blocked, the target GameObject is destroyed and the Fallback is set active.", MessageType.None);
+            
+            if (GUILayout.Button("Reset to Default"))
+            {
+                m_tagLoudAudio.boolValue = true;
+                m_tagLongRangeAudio.boolValue = true;
+                m_tagScreenFx.boolValue = true;
+                m_tagFlashingColors.boolValue = true;
+                m_tagFlashingLights.boolValue = true;
+                m_tagViolence.boolValue = true;
+                m_tagSuggestive.boolValue = true;
+                m_tagHorror.boolValue = true;
+                m_tagGore.boolValue = false; // client blocks gore by default
+                m_tagNudity.boolValue = false; // client blocks nudity by default
+            }
             
             EditorGUILayout.EndVertical();
             
-            EditorGUI.indentLevel--;
             EditorGUILayout.EndVertical();
         }
         
