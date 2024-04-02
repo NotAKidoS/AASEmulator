@@ -26,7 +26,7 @@ namespace NAK.AASEmulator.Editor
             
             // Initialize on select
             _targetScript = (AASEmulatorRuntime)target;
-            if (!_targetScript.IsInitialized())
+            if (!_targetScript.IsInitialized)
                 _targetScript.Initialize();
         }
         private void OnDisable() => OnRequestRepaint -= Repaint;

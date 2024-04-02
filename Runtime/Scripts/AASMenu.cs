@@ -15,7 +15,7 @@ namespace NAK.AASEmulator.Runtime
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            AASEmulatorCore.runtimeInitializedDelegate = runtime =>
+            AASEmulatorCore.runtimeInitializedDelegate += runtime =>
             {
                 if (AASEmulatorCore.Instance != null 
                     && !AASEmulatorCore.Instance.EmulateAASMenu)

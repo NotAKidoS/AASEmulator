@@ -21,6 +21,18 @@ namespace NAK.AASEmulator.Editor
         private SerializedProperty m_onlyInitializeOnSelect;
         private SerializedProperty m_emulateAASMenu;
         private SerializedProperty m_defaultRuntimeController;
+        
+        private SerializedProperty m_emulateAdvancedTagging;
+        private SerializedProperty m_tagLoudAudio;
+        private SerializedProperty m_tagLongRangeAudio;
+        private SerializedProperty m_tagScreenFx;
+        private SerializedProperty m_tagFlashingColors;
+        private SerializedProperty m_tagFlashingLights;
+        private SerializedProperty m_tagViolence;
+        private SerializedProperty m_tagGore;
+        private SerializedProperty m_tagSuggestive;
+        private SerializedProperty m_tagNudity;
+        private SerializedProperty m_tagHorror;
 
         #endregion
 
@@ -39,6 +51,23 @@ namespace NAK.AASEmulator.Editor
             m_onlyInitializeOnSelect = serializedObject.FindProperty(nameof(AASEmulatorCore.OnlyInitializeOnSelect));
             m_emulateAASMenu = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAASMenu));
             m_defaultRuntimeController = serializedObject.FindProperty(nameof(AASEmulatorCore.defaultRuntimeController));
+            
+            m_emulateAdvancedTagging = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAdvancedTagging));
+            m_tagLoudAudio = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.LoudAudio));
+            m_tagLongRangeAudio = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.LongRangeAudio));
+            m_tagScreenFx = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.ScreenFx));
+            m_tagFlashingColors = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.FlashingColors));
+            m_tagFlashingLights = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.FlashingLights));
+            m_tagViolence = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.Violence));
+            m_tagGore = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.Gore));
+            m_tagSuggestive = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.Suggestive));
+            m_tagNudity = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.Nudity));
+            m_tagHorror = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.Horror));
+            
+            return;
+            
+            SerializedProperty GetTaggingProperty(string propName) 
+                => serializedObject.FindProperty(nameof(AASEmulatorCore.advTagging) + "." + propName);
         }
         
         public override void OnInspectorGUI()
@@ -65,11 +94,42 @@ namespace NAK.AASEmulator.Editor
         
         private void Draw_Settings()
         {
-            EditorGUILayout.LabelField("Emulator Settings", EditorStyles.boldLabel);
-            
+            EditorGUILayout.LabelField("Emulator / Configuration", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_onlyInitializeOnSelect);
             EditorGUILayout.PropertyField(m_emulateAASMenu);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
+            
+            EditorGUILayout.Space();
+            
+            EditorGUILayout.LabelField("Emulator / Advanced Tagging", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_emulateAdvancedTagging);
+            
+            EditorGUILayout.BeginHorizontal("box");
+            EditorGUI.indentLevel++;
+            
+            EditorGUILayout.BeginVertical();
+            
+            EditorGUILayout.PropertyField(m_tagLoudAudio);
+            EditorGUILayout.PropertyField(m_tagLongRangeAudio);
+            EditorGUILayout.PropertyField(m_tagScreenFx);
+            EditorGUILayout.PropertyField(m_tagFlashingColors);
+            EditorGUILayout.PropertyField(m_tagFlashingLights);
+            EditorGUILayout.PropertyField(m_tagViolence);
+            EditorGUILayout.PropertyField(m_tagHorror);
+            EditorGUILayout.PropertyField(m_tagSuggestive);
+            
+            EditorGUILayout.EndVertical();
+            
+            EditorGUILayout.BeginVertical();
+            
+            EditorGUILayout.HelpBox("The following tags are locked behind the Mature Content DLC.", MessageType.None);
+            EditorGUILayout.PropertyField(m_tagGore);
+            EditorGUILayout.PropertyField(m_tagNudity);
+            
+            EditorGUILayout.EndVertical();
+            
+            EditorGUI.indentLevel--;
+            EditorGUILayout.EndVertical();
         }
         
         private void Draw_Links()

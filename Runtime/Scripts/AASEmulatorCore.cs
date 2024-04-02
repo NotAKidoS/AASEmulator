@@ -1,4 +1,5 @@
-﻿using ABI.CCK.Components;
+﻿using System;
+using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.0.8";
+        public const string AAS_EMULATOR_VERSION = "0.0.9";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -43,6 +44,45 @@ namespace NAK.AASEmulator.Runtime
         private readonly List<AASEmulatorRuntime> m_runtimes = new();
         private readonly HashSet<CVRAvatar> m_scannedAvatars = new();
 
+        #region Settings / Advanced Tagging
+
+        [Tooltip("Enable emulating Advanced Tagging. This will strip GameObjects tagged with Advanced Tagging based on the settings defined below.")]
+        public bool EmulateAdvancedTagging = true;
+
+        // Advanced Tagging Settings
+        public AdvancedTags advTagging = new()
+        {
+            LoudAudio = true,
+            LongRangeAudio = true,
+            ScreenFx = true,
+            FlashingColors = true,
+            FlashingLights = true,
+            Violence = true,
+            Gore = true,
+            Suggestive = true,
+            Nudity = true,
+            Horror = true
+        };
+        
+        [Serializable]
+        public struct AdvancedTags
+        {
+            public bool LoudAudio;
+            public bool LongRangeAudio;
+            public bool ScreenFx;
+            public bool FlashingColors;
+            public bool FlashingLights;
+            public bool Violence;
+            public bool Gore;
+            public bool Suggestive;
+            public bool Nudity;
+            public bool Horror;
+        }
+        
+        #endregion
+
+        #region Settings / Emulator Config
+        
         [Tooltip("Only initialize AASEmulatorRuntime on avatar selection. This may help with any initial hitch when entering play mode.")]
         public bool OnlyInitializeOnSelect = true;
         
@@ -53,6 +93,8 @@ namespace NAK.AASEmulator.Runtime
         public RuntimeAnimatorController defaultRuntimeController;
         private const string CONTROLLER_GUID = "ff926e022d914b84e8975ba6188a26f0";
         private const string CONTROLLER_PATH = "Assets/ABI.CCK/Animations/AvatarAnimator.controller";
+        
+        #endregion
         
         #region Unity Methods
 
