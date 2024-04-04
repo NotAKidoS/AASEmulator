@@ -2,9 +2,11 @@
 using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace NAK.AASEmulator.Runtime
@@ -61,8 +63,11 @@ namespace NAK.AASEmulator.Runtime
 
         #region Settings / Avatar Tracking
 
-        [Tooltip("Emulate the simulated eye blinking on avatars.")]
-        public bool EmulateEyeBlinking = true;
+        [FormerlySerializedAs("EmulateEyeBlinking")] [Tooltip("Emulate the simulated eye blinking on avatars.")]
+        public bool EmulateEyeBlink = true;
+        
+        [FormerlySerializedAs("EmulateEyeTracking")] [Tooltip("Emulate the simulated eye tracking on avatars.")]
+        public bool EmulateEyeLook = true;
 
         #endregion Settings / Avatar Tracking
         
@@ -103,6 +108,12 @@ namespace NAK.AASEmulator.Runtime
         
         #endregion Settings / Advanced Tagging
         
+        #region Public Properties
+        
+        public Vector3 GlobalLookAtPositionWorld { get; private set; }
+        
+        #endregion Public Properties
+        
         #region Unity Methods
 
         private void OnValidate()
@@ -123,6 +134,11 @@ namespace NAK.AASEmulator.Runtime
 
             LoadDefaultCCKController();
             StartEmulator();
+        }
+
+        private void Update()
+        {
+            UpdateGlobalLookAtPosition();
         }
 
         private void OnDestroy()
@@ -191,6 +207,20 @@ namespace NAK.AASEmulator.Runtime
             
             if (newAvatars.Count > 0)
                 SimpleLogger.Log("Setting up AASEmulator on " + newAvatars.Count + " new avatars.", gameObject);
+        }
+
+        private void UpdateGlobalLookAtPosition()
+        {
+            Camera foundCamera = Camera.main; // default to main camera
+            if (foundCamera == null)
+                return;
+            
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.x = Screen.width - mousePosition.x; // mirror
+            mousePosition.y = Screen.height - mousePosition.y; // mirror
+            mousePosition.z = -1f; // target behind camera
+            
+            GlobalLookAtPositionWorld = foundCamera.ScreenToWorldPoint(mousePosition);
         }
 
         #endregion Private Methods

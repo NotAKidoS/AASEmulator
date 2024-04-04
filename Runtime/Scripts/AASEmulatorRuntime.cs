@@ -242,7 +242,8 @@ namespace NAK.AASEmulator.Runtime
         #region Variables
 
         public AnimatorManager AnimatorManager { get; private set; }
-        private AvatarBlinkManager BlinkManager { get; set; }
+        private AvatarEyeBlinkManager EyeBlinkManager { get; set; }
+        private AvatarEyeLookManager EyeLookManager { get; set; }
 
         public CVRAvatar m_avatar;
         public Animator m_animator;
@@ -322,7 +323,8 @@ namespace NAK.AASEmulator.Runtime
             }
 
             AnimatorManager = new AnimatorManager(m_animator);
-            BlinkManager = new AvatarBlinkManager(m_avatar);
+            EyeBlinkManager = new AvatarEyeBlinkManager(m_avatar);
+            EyeLookManager = new AvatarEyeLookManager(m_avatar);
 
             AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
             AASEmulatorCore.runtimeInitializedDelegate?.Invoke(this);
@@ -404,8 +406,12 @@ namespace NAK.AASEmulator.Runtime
             Apply_ActiveBodyOffset();
             
             // kind of lazy but works for now
-            BlinkManager.IsEnabled = UseBlinkBlendshapes && AASEmulatorCore.Instance.EmulateEyeBlinking;
-            BlinkManager.OnLateUpdate();
+            EyeBlinkManager.IsEnabled = UseBlinkBlendshapes && AASEmulatorCore.Instance.EmulateEyeBlink;
+            EyeBlinkManager.OnLateUpdate();
+
+            EyeLookManager.IsEnabled = UseEyeMovement && AASEmulatorCore.Instance.EmulateEyeLook;
+            EyeLookManager.LookAtPositionWorld = AASEmulatorCore.Instance.GlobalLookAtPositionWorld; // todo: expose look at position
+            EyeLookManager.OnLateUpdate();
         }
 
         // fixedDeltaTime is wack in ChilloutVR... Needs proper handling.
@@ -416,6 +422,16 @@ namespace NAK.AASEmulator.Runtime
                 return;
 
             Update_EmoteValues_FixedUpdate();
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (!IsInitialized)
+                return;
+            
+            // todo: expose IsDebugDrawEnabled in AASEmulatorCore
+
+            EyeLookManager.OnDrawGizmosSelected();
         }
 
         #endregion Unity Methods

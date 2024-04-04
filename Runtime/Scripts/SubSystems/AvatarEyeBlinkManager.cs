@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime.SubSystems
 {
-    public class AvatarBlinkManager
+    public class AvatarEyeBlinkManager
     {
         #region Public Properties
         
@@ -55,7 +55,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         private readonly CVRAvatar m_avatar;
         private int[] m_blinkingBlendShapeIndicies;
 
-        public AvatarBlinkManager(CVRAvatar avatar)
+        public AvatarEyeBlinkManager(CVRAvatar avatar)
         {
             m_avatar = avatar;
             InitializeEyeBlink();
