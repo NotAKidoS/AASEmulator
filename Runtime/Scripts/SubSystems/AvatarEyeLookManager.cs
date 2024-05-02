@@ -198,7 +198,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             if (m_avatar == null)
                 return;
             
-            if (m_avatar.eyeLookMode == CVRAvatar.CVRAvatarEyeLookMode.Muscle)
+            if (m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.Muscle)
             {
                 Transform root = m_avatar.transform;
                 Animator animator = root.GetComponent<Animator>();
@@ -245,7 +245,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         private void Handle_EyeLook()
         {
-            if (m_avatar == null || m_avatar.eyeLookMode != CVRAvatar.CVRAvatarEyeLookMode.Muscle)
+            if (m_avatar == null || m_avatar.eyeMovementInfo.type != CVRAvatar.CVRAvatarEyeLookMode.Muscle)
                 return;
 
             if (m_leftEye.eyeTransform != null) m_leftEye.LookAtPositionWorld(_lookAtPositionWorld);

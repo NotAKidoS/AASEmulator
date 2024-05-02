@@ -78,18 +78,15 @@ namespace NAK.AASEmulator.Runtime
                     case SettingsType.InputVector2:
                         postfixes = new[] { "-x", "-y" };
                         break;
-
                     case SettingsType.Joystick3D:
                     case SettingsType.InputVector3:
                         postfixes = new[] { "-x", "-y", "-z" };
                         break;
-
-                    case SettingsType.MaterialColor:
+                    case SettingsType.Color:
                         postfixes = new[] { "-r", "-g", "-b" };
                         break;
-
-                    case SettingsType.GameObjectDropdown:
-                    case SettingsType.GameObjectToggle:
+                    case SettingsType.Dropdown:
+                    case SettingsType.Toggle:
                     case SettingsType.Slider:
                     case SettingsType.InputSingle:
                     default:
@@ -105,7 +102,7 @@ namespace NAK.AASEmulator.Runtime
                 };
 
                 if (setting.setting is CVRAdvancesAvatarSettingGameObjectDropdown dropdown)
-                    menuEntry.menuOptions = dropdown.getOptionsList();
+                    menuEntry.menuOptions = dropdown.optionNames; 
 
                 for (int i = 0; i < postfixes.Length; i++)
                 {
@@ -151,7 +148,7 @@ namespace NAK.AASEmulator.Runtime
         {
             public string menuName;
             public string machineName;
-            public SettingsType settingType;
+            public CVRAdvancedSettingsEntry.SettingsType settingType;
             public float valueX, valueY, valueZ;
             public string[] menuOptions;
         }

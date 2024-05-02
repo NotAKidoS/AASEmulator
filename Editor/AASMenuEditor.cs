@@ -71,7 +71,7 @@ namespace NAK.AASEmulator.Editor
             
             switch (entry.settingType)
             {
-                case SettingsType.GameObjectDropdown:
+                case SettingsType.Dropdown:
                     int oldIndex = (int)entry.valueX;
                     int newIndex = EditorGUILayout.Popup("Value", oldIndex, entry.menuOptions);
                     if (newIndex != oldIndex)
@@ -80,7 +80,7 @@ namespace NAK.AASEmulator.Editor
                         entry.valueX = newIndex;
                     }
                     break;
-                case SettingsType.GameObjectToggle:
+                case SettingsType.Toggle:
                     bool oldValue = entry.valueX >= 0.5f;
                     bool newValue = EditorGUILayout.Toggle("Value", oldValue);
                     if (newValue != oldValue)
@@ -129,7 +129,7 @@ namespace NAK.AASEmulator.Editor
                     }
                     break;
                 // TODO: AAAAAAAAAAAA
-                case SettingsType.MaterialColor:
+                case SettingsType.Color:
                 case SettingsType.Joystick2D:
                 case SettingsType.Joystick3D:
                 default:
