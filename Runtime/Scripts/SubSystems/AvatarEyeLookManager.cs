@@ -16,14 +16,14 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             {
                 if (_isEnabled && !value)
                 {
-                    // reset blink blendshapes
-                    //Apply_BlinkBlendshapes(0f);
+                    // reset eye look
+                    Reset_EyeLook();
                 }
                 _isEnabled = value;
             }
         }
 
-        private bool _isDebugDrawEnabled;
+        private bool _isDebugDrawEnabled = true;
         public bool IsDebugDrawEnabled
         {
             get => _isDebugDrawEnabled;
@@ -277,11 +277,18 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
             foreach (EyeDefinition eye in m_eyeDefinitions)
             {
-                if (!eye.eyeTransform) 
-                    return;
-                
+                if (!eye.eyeTransform) return;
                 eye.LookAtPositionWorld(LookAtPositionWorld);
                 DrawEyeLookDebug(eye); // draw after the eye look
+            }
+        }
+
+        private void Reset_EyeLook()
+        {
+            foreach (EyeDefinition eye in m_eyeDefinitions)
+            {
+                if (!eye.eyeTransform) return;
+                eye.eyeTransform.localRotation = eye.originalRotationLocal;
             }
         }
         
