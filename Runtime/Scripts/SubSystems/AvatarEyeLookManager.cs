@@ -264,7 +264,8 @@ namespace NAK.AASEmulator.Runtime.SubSystems
                 if (eyeTransform == null) continue; // skip if no eye transform
                 m_eyeDefinitions.Add(new EyeDefinition(root, eyeTransform, 
                     -eyeInfo.eyeAngleLimitUp, -eyeInfo.eyeAngleLimitDown, // up is negative, down is positive, invert!
-                    eyeInfo.eyeAngleLimitIn, eyeInfo.eyeAngleLimitOut));
+                    eyeInfo.isLeft ? eyeInfo.eyeAngleLimitIn : -eyeInfo.eyeAngleLimitOut, 
+                    eyeInfo.isLeft ? eyeInfo.eyeAngleLimitOut : -eyeInfo.eyeAngleLimitIn));
             }
         }
 
