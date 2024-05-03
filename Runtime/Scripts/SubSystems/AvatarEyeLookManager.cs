@@ -1,4 +1,5 @@
-﻿using ABI.CCK.Components;
+﻿using System.Collections.Generic;
+using ABI.CCK.Components;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime.SubSystems
@@ -52,15 +53,17 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             public const float MUSCLE_DEFAULT_MAX_EYE_LEFT = -20f;
             public const float MUSCLE_DEFAULT_MAX_EYE_RIGHT = 20f;
             
-            public EyeDefinition(Transform avatarRoot, Transform eyeTransform, Vector2 upDownLimit, Vector2 inOutLimit)
+            public EyeDefinition(Transform avatarRoot, Transform eyeTransform, 
+                float eyeAngleLimitUp, float eyeAngleLimitDown, 
+                float eyeAngleLimitIn, float eyeAngleLimitOut)
             {
                 this.eyeTransform = eyeTransform;
                 //this.eyeRenderer = eyeRenderer;
                 
-                maxEyeUpLimit = upDownLimit.x;
-                maxEyeDownLimit = upDownLimit.y;
-                maxEyeLeftLimit = inOutLimit.x;
-                maxEyeRightLimit = inOutLimit.y;
+                maxEyeUpLimit = eyeAngleLimitUp;
+                maxEyeDownLimit = eyeAngleLimitDown;
+                maxEyeLeftLimit = eyeAngleLimitIn;
+                maxEyeRightLimit = eyeAngleLimitOut;
                 
                 // chilloutvr assumes the eye forward direction to be the initial rotation of the eye bone
                 originalRotationLocal = eyeTransform.localRotation;
@@ -161,8 +164,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         
         // Avatar info
         private readonly CVRAvatar m_avatar;
-        private EyeDefinition m_leftEye;
-        private EyeDefinition m_rightEye;
+        private List<EyeDefinition> m_eyeDefinitions = new List<EyeDefinition>();
         
         public AvatarEyeLookManager(CVRAvatar avatar)
         {
@@ -197,61 +199,89 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         {
             if (m_avatar == null)
                 return;
-            
-            if (m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.Muscle)
-            {
-                Transform root = m_avatar.transform;
-                Animator animator = root.GetComponent<Animator>();
-                
-                Transform leftEyeTransform = animator.GetBoneTransform(HumanBodyBones.LeftEye);
-                Transform rightEyeTransform = animator.GetBoneTransform(HumanBodyBones.RightEye);
-                
-                // get eye limits from humanoid configuration
-                Vector2 upDownLimitRight;
-                Vector2 inOutLimitRight;
-                Vector2 upDownLimitLeft = upDownLimitRight = new Vector2(EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_UP, EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_DOWN);
-                Vector2 inOutLimitLeft = inOutLimitRight = new Vector2(EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_LEFT, EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_RIGHT);
 
-                string leftEyeBoneName = HumanBodyBones.LeftEye.ToString();
-                string rightEyeBoneName = HumanBodyBones.RightEye.ToString();
-                foreach (HumanBone humanBone in animator.avatar.humanDescription.human)
+            if (m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.Muscle)
+                InitializeMuscleEyeLook();
+            else if (m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.Transform)
+                InitializeTransformEyeLook();
+        }
+
+        private void InitializeMuscleEyeLook()
+        {
+            Transform root = m_avatar.transform;
+            Animator animator = root.GetComponent<Animator>();
+            
+            Transform leftEyeTransform = animator.GetBoneTransform(HumanBodyBones.LeftEye);
+            Transform rightEyeTransform = animator.GetBoneTransform(HumanBodyBones.RightEye);
+            
+            // get eye limits from humanoid configuration
+            Vector2 upDownLimitRight;
+            Vector2 inOutLimitRight;
+            Vector2 upDownLimitLeft = upDownLimitRight = new Vector2(EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_UP, EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_DOWN);
+            Vector2 inOutLimitLeft = inOutLimitRight = new Vector2(EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_LEFT, EyeDefinition.MUSCLE_DEFAULT_MAX_EYE_RIGHT);
+
+            string leftEyeBoneName = HumanBodyBones.LeftEye.ToString();
+            string rightEyeBoneName = HumanBodyBones.RightEye.ToString();
+            foreach (HumanBone humanBone in animator.avatar.humanDescription.human)
+            {
+                if (humanBone.humanName == leftEyeBoneName)
                 {
-                    if (humanBone.humanName == leftEyeBoneName)
-                    {
-                        upDownLimitLeft = humanBone.limit.useDefaultValues
-                            ? upDownLimitLeft
-                            : new Vector2(humanBone.limit.min.z, humanBone.limit.max.z);
-                        inOutLimitLeft = humanBone.limit.useDefaultValues
-                            ? inOutLimitLeft
-                            : new Vector2(-humanBone.limit.max.y, -humanBone.limit.min.y);
-                    }
-                    else if (humanBone.humanName == rightEyeBoneName)
-                    {
-                        upDownLimitRight = humanBone.limit.useDefaultValues
-                            ? upDownLimitRight
-                            : new Vector2(humanBone.limit.min.z, humanBone.limit.max.z);
-                        inOutLimitRight = humanBone.limit.useDefaultValues
-                            ? inOutLimitRight
-                            : new Vector2(humanBone.limit.min.y, humanBone.limit.max.y);
-                    }
+                    upDownLimitLeft = humanBone.limit.useDefaultValues
+                        ? upDownLimitLeft
+                        : new Vector2(humanBone.limit.min.z, humanBone.limit.max.z);
+                    inOutLimitLeft = humanBone.limit.useDefaultValues
+                        ? inOutLimitLeft
+                        : new Vector2(-humanBone.limit.max.y, -humanBone.limit.min.y);
                 }
-                
-                if (leftEyeTransform != null) 
-                    m_leftEye = new EyeDefinition(root, leftEyeTransform, upDownLimitLeft, inOutLimitLeft);
-                if (rightEyeTransform != null)
-                    m_rightEye = new EyeDefinition(root, rightEyeTransform, upDownLimitRight, inOutLimitRight);
+                else if (humanBone.humanName == rightEyeBoneName)
+                {
+                    upDownLimitRight = humanBone.limit.useDefaultValues
+                        ? upDownLimitRight
+                        : new Vector2(humanBone.limit.min.z, humanBone.limit.max.z);
+                    inOutLimitRight = humanBone.limit.useDefaultValues
+                        ? inOutLimitRight
+                        : new Vector2(humanBone.limit.min.y, humanBone.limit.max.y);
+                }
+            }
+            
+            if (leftEyeTransform != null) 
+                m_eyeDefinitions.Add(new EyeDefinition(root, leftEyeTransform, 
+                    upDownLimitLeft.x, upDownLimitLeft.y, inOutLimitLeft.x, inOutLimitLeft.y));
+            if (rightEyeTransform != null)
+                m_eyeDefinitions.Add(new EyeDefinition(root, rightEyeTransform, 
+                    upDownLimitRight.x, upDownLimitRight.y, inOutLimitRight.x, inOutLimitRight.y));
+        }
+
+        private void InitializeTransformEyeLook()
+        {
+            Transform root = m_avatar.transform;
+            
+            // get eye entries from avatar
+            var eyeEntries = m_avatar.eyeMovementInfo.eyes;
+            foreach (CVRAvatar.EyeMovementInfoEye eyeInfo in eyeEntries)
+            {
+                Transform eyeTransform = eyeInfo.eyeTransform;
+                if (eyeTransform == null) continue; // skip if no eye transform
+                m_eyeDefinitions.Add(new EyeDefinition(root, eyeTransform, 
+                    -eyeInfo.eyeAngleLimitUp, -eyeInfo.eyeAngleLimitDown, // up is negative, down is positive, invert!
+                    eyeInfo.eyeAngleLimitIn, eyeInfo.eyeAngleLimitOut));
             }
         }
 
         private void Handle_EyeLook()
         {
-            if (m_avatar == null || m_avatar.eyeMovementInfo.type != CVRAvatar.CVRAvatarEyeLookMode.Muscle)
+            if (m_avatar == null 
+                || m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.None)
                 return;
 
-            if (m_leftEye.eyeTransform != null) m_leftEye.LookAtPositionWorld(_lookAtPositionWorld);
-            if (m_rightEye.eyeTransform != null) m_rightEye.LookAtPositionWorld(_lookAtPositionWorld);
-            //DrawEyeLookDebug(m_leftEye); // draw after the eye look
-            //DrawEyeLookDebug(m_rightEye); // draw after the eye look
+            foreach (EyeDefinition eye in m_eyeDefinitions)
+            {
+                if (!eye.eyeTransform) 
+                    return;
+                
+                eye.LookAtPositionWorld(LookAtPositionWorld);
+                DrawEyeLookDebug(eye); // draw after the eye look
+            }
         }
         
         private void DrawEyeLookDebug(EyeDefinition eye)
