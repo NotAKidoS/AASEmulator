@@ -25,6 +25,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             { "MovementY", AnimatorControllerParameterType.Float },
             { "Toggle", AnimatorControllerParameterType.Float },
             { "Emote", AnimatorControllerParameterType.Float },
+            // Ints
+            { "GestureLeftIdx", AnimatorControllerParameterType.Int },
+            { "GestureRightIdx", AnimatorControllerParameterType.Int },
             // Bools
             { "Grounded", AnimatorControllerParameterType.Bool },
             { "Crouching", AnimatorControllerParameterType.Bool },
