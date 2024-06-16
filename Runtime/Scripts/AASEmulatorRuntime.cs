@@ -557,6 +557,8 @@ namespace NAK.AASEmulator.Runtime
         {
             AnimatorManager.SetCoreParameter("GestureLeft", _gestureLeft);
             AnimatorManager.SetCoreParameter("GestureRight", _gestureRight);
+            AnimatorManager.SetCoreParameter("GestureLeftIdx", _gestureLeftIdx);
+            AnimatorManager.SetCoreParameter("GestureRightIdx", _gestureRightIdx);
             AnimatorManager.SetCoreParameter("Grounded", Grounded);
             AnimatorManager.SetCoreParameter("Crouching", Crouching);
             AnimatorManager.SetCoreParameter("Prone", Prone);
