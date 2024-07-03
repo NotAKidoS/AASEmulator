@@ -16,7 +16,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.0";
+        public const string AAS_EMULATOR_VERSION = "0.1.2";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -66,7 +66,7 @@ namespace NAK.AASEmulator.Runtime
         public bool EmulateEyeBlink = true;
         
         [FormerlySerializedAs("EmulateEyeTracking")] [Tooltip("Emulate the simulated eye tracking on avatars.")]
-        public bool EmulateEyeLook = true;
+        public bool EmulateEyeLook;
 
         #endregion Settings / Avatar Tracking
         
