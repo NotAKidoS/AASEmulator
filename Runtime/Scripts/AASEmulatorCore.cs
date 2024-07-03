@@ -16,7 +16,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.2";
+        public const string AAS_EMULATOR_VERSION = "0.1.1";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -27,7 +27,7 @@ namespace NAK.AASEmulator.Runtime
         public const string ABI_CCK_DOCUMENTATION_URL = "https://documentation.abinteractive.net/cck/";
         public const string ABI_HUB_URL = "https://hub.abinteractive.net/";
         
-        #endregion
+        #endregion Constants
         
         #region Support Delegates
 
