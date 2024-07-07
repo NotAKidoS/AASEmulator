@@ -132,6 +132,6 @@ namespace NAK.AASEmulator.Runtime.SubSystems
                 m_avatar.bodyMesh.SetBlendShapeWeight(index, amount);
         }
 
-        #endregion
+        #endregion Private Methods
     }
 }

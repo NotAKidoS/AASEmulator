@@ -76,8 +76,7 @@ namespace NAK.AASEmulator.Editor
                     int newIndex = EditorGUILayout.Popup("Value", oldIndex, entry.menuOptions);
                     if (newIndex != oldIndex)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newIndex);
-                        entry.valueX = newIndex;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newIndex);
                     }
                     break;
                 case SettingsType.Toggle:
@@ -85,8 +84,7 @@ namespace NAK.AASEmulator.Editor
                     bool newValue = EditorGUILayout.Toggle("Value", oldValue);
                     if (newValue != oldValue)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newValue);
-                        entry.valueX = newValue ? 1f : 0f;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newValue ? 1f : 0f);
                     }
                     break;
                 case SettingsType.Slider:
@@ -94,8 +92,7 @@ namespace NAK.AASEmulator.Editor
                     float newSliderValue = EditorGUILayout.Slider("Value", oldSliderValue, 0f, 1f);
                     if (newSliderValue != oldSliderValue)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newSliderValue);
-                        entry.valueX = newSliderValue;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newSliderValue);
                     }
                     break;
                 case SettingsType.InputSingle:
@@ -103,8 +100,7 @@ namespace NAK.AASEmulator.Editor
                     float newSingleValue = EditorGUILayout.FloatField("Value", oldSingleValue);
                     if (newSingleValue != oldSingleValue)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newSingleValue);
-                        entry.valueX = newSingleValue;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newSingleValue);
                     }
                     break;
                 case SettingsType.InputVector2:
@@ -112,9 +108,8 @@ namespace NAK.AASEmulator.Editor
                     Vector2 newVector2Value = EditorGUILayout.Vector2Field("Value", oldVector2Value);
                     if (newVector2Value != oldVector2Value)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newVector2Value);
-                        entry.valueX = newVector2Value.x;
-                        entry.valueY = newVector2Value.y;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-x", entry.valueX = newVector2Value.x);
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-y", entry.valueY = newVector2Value.y);
                     }
                     break;
                 case SettingsType.InputVector3:
@@ -122,10 +117,9 @@ namespace NAK.AASEmulator.Editor
                     Vector3 newVector3Value = EditorGUILayout.Vector3Field("Value", oldVector3Value);
                     if (newVector3Value != oldVector3Value)
                     {
-                        _menu.AnimatorManager.SetParameter(entry.machineName, newVector3Value);
-                        entry.valueX = newVector3Value.x;
-                        entry.valueY = newVector3Value.y;
-                        entry.valueZ = newVector3Value.z;
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-x", entry.valueX = newVector3Value.x);
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-y", entry.valueY = newVector3Value.y);
+                        _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-z", entry.valueZ = newVector3Value.z);
                     }
                     break;
                 // TODO: AAAAAAAAAAAA

@@ -2,6 +2,7 @@
 using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
+using NAK.AASEmulator.Runtime.Extensions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting.APIUpdating;
@@ -16,7 +17,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.1";
+        public const string AAS_EMULATOR_VERSION = "0.1.2";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -38,12 +39,21 @@ namespace NAK.AASEmulator.Runtime
         public delegate void RuntimeInitialized(AASEmulatorRuntime runtime);
 
         public static RuntimeInitialized runtimeInitializedDelegate;
+        
+        public delegate void RuntimeCreated(AASEmulatorRuntime runtime);
+        
+        public static RuntimeCreated runtimeCreatedDelegate;
+        
+        public delegate void RuntimeDestroyed(AASEmulatorRuntime runtime);
+        
+        public static RuntimeDestroyed runtimeRemovedDelegate;
 
         #endregion Support Delegates
 
-        public static AASEmulatorCore Instance;
+        public static AASEmulatorCore Instance { get; private set; }
         private readonly List<AASEmulatorRuntime> m_runtimes = new();
         private readonly HashSet<CVRAvatar> m_scannedAvatars = new();
+        private GameObject m_CloneInstantiationTarget;
 
         #region Settings / Emulator Config
         
@@ -60,7 +70,7 @@ namespace NAK.AASEmulator.Runtime
         
         #endregion Settings / Emulator Config
 
-        #region Settings / Avatar Tracking
+        #region Settings / Avatar Simulation
 
         [FormerlySerializedAs("EmulateEyeBlinking")] [Tooltip("Emulate the simulated eye blinking on avatars.")]
         public bool EmulateEyeBlink = true;
@@ -68,7 +78,7 @@ namespace NAK.AASEmulator.Runtime
         [FormerlySerializedAs("EmulateEyeTracking")] [Tooltip("Emulate the simulated eye tracking on avatars.")]
         public bool EmulateEyeLook;
 
-        #endregion Settings / Avatar Tracking
+        #endregion Settings / Avatar Simulation
         
         #region Settings / Advanced Tagging
 
@@ -130,6 +140,12 @@ namespace NAK.AASEmulator.Runtime
                 return;
             }
             Instance = this;
+            
+            runtimeInitializedDelegate += OnRuntimeAdded;
+            runtimeRemovedDelegate += OnRuntimeRemoved;
+            
+            BodyControl.OnExecuteEnterTask.AddListener(OnBodyControlTask);
+            BodyControl.OnExecuteExitTask.AddListener(OnBodyControlTask);
 
             LoadDefaultCCKController();
             StartEmulator();
@@ -147,6 +163,21 @@ namespace NAK.AASEmulator.Runtime
 
         #endregion Unity Methods
 
+        #region Public Methods
+
+        // Instantiate clone onto disabled object to prevent Awake & OnEnable from firing :)
+        public GameObject InstantiateClone(GameObject original)
+        {
+            GameObject clone = Instantiate(original, m_CloneInstantiationTarget.transform);
+            clone.SetActive(true);
+            clone.SetLayersOfChildren(10); // PlayerNetwork layer
+            // NOTE: Triggers & Pointers can detect this layer shift on avatar load if they are not on the target layer already
+            // If I get around to emulating Triggers & Pointers, I will need to replicate that... _-_
+            return clone;
+        }
+
+        #endregion Public Methods
+
         #region Private Methods
         
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) 
@@ -156,6 +187,17 @@ namespace NAK.AASEmulator.Runtime
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            if (m_CloneInstantiationTarget == null)
+            {
+                m_CloneInstantiationTarget = new GameObject("AASEmulatorInstantiationTarget")
+                {
+                    hideFlags = HideFlags.HideAndDontSave | HideFlags.HideInInspector
+                };
+                m_CloneInstantiationTarget.SetActive(false);
+                //m_CloneInstantiationTarget.transform.SetParent(transform);
+            }
+            
             ScanForAvatars(gameObject.scene);
         }
 
@@ -223,5 +265,51 @@ namespace NAK.AASEmulator.Runtime
         }
 
         #endregion Private Methods
+
+        #region Game Events
+        
+        // body control
+        private readonly Dictionary<Animator, AASEmulatorRuntime> m_runtimeMap = new();
+        
+        private void OnRuntimeAdded(AASEmulatorRuntime runtime)
+            => m_runtimeMap[runtime.m_animator] = runtime;
+        
+        private void OnRuntimeRemoved(AASEmulatorRuntime runtime)
+            => m_runtimeMap.Remove(runtime.m_animator);
+        
+        private void OnBodyControlTask(Animator animator, BodyControlTask task)
+        {
+            if (!m_runtimeMap.TryGetValue(animator, out AASEmulatorRuntime runtime))
+                return;
+
+            switch (task.target)
+            {
+                case BodyControlTask.BodyMask.Head:
+                    runtime.BodyControl.Head = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.Pelvis:
+                    runtime.BodyControl.Pelvis = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.LeftArm:
+                    runtime.BodyControl.LeftArm = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.RightArm:
+                    runtime.BodyControl.RightArm = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.LeftLeg:
+                    runtime.BodyControl.LeftLeg = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.RightLeg:
+                    runtime.BodyControl.RightLeg = task.targetWeight > 0.5f;
+                    break;
+                case BodyControlTask.BodyMask.Locomotion:
+                    runtime.BodyControl.Locomotion = task.targetWeight > 0.5f;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        #endregion Game Events
     }
 }

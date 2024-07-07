@@ -164,7 +164,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         
         // Avatar info
         private readonly CVRAvatar m_avatar;
-        private List<EyeDefinition> m_eyeDefinitions = new List<EyeDefinition>();
+        private readonly List<EyeDefinition> m_eyeDefinitions = new();
         
         public AvatarEyeLookManager(CVRAvatar avatar)
         {

@@ -10,14 +10,16 @@ namespace NAK.AASEmulator.Editor
         static EditorExtensions()
         {
             // init styles
+            s_BoldLabelStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold };
             s_BoldFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
         }
         
-        #endregion
+        #endregion Constructor
         
         #region Shared Styles
 
-        internal static GUIStyle s_BoldFoldoutStyle;
+        internal static readonly GUIStyle s_BoldLabelStyle;
+        internal static readonly GUIStyle s_BoldFoldoutStyle;
 
         #endregion
         

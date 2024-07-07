@@ -36,7 +36,7 @@ namespace NAK.AASEmulator.Runtime
         #region Variables
 
         public readonly List<AASMenuEntry> entries = new();
-        public AnimatorManager AnimatorManager => runtime.AnimatorManager;
+        public AvatarAnimator AnimatorManager => runtime.AnimatorManager;
         private AASEmulatorRuntime runtime;
 
         #endregion Variables
@@ -106,17 +106,8 @@ namespace NAK.AASEmulator.Runtime
 
                 for (int i = 0; i < postfixes.Length; i++)
                 {
-                    if (AnimatorManager.Parameters.TryGetValue(setting.machineName + postfixes[i],
-                            out AnimatorManager.BaseParam param))
+                    if (AnimatorManager.Parameters.GetParameter(setting.machineName + postfixes[i], out float value))
                     {
-                        float value = param switch
-                        {
-                            AnimatorManager.FloatParam floatParam => floatParam.defaultValue,
-                            AnimatorManager.IntParam intParam => intParam.defaultValue,
-                            AnimatorManager.BoolParam boolParam => boolParam.defaultValue ? 1f : 0f,
-                            _ => 0f
-                        };
-
                         switch (i)
                         {
                             case 0:
