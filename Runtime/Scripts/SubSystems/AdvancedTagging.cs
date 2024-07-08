@@ -13,15 +13,23 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         {
             AASEmulatorCore.runtimeInitializedDelegate -= OnRuntimeInitialized; // unsub from last play mode session
             AASEmulatorCore.runtimeInitializedDelegate += OnRuntimeInitialized;
+            
+            AASEmulatorCore.remoteInitializedDelegate -= OnRemoteInitialized; // unsub from last play mode session
+            AASEmulatorCore.remoteInitializedDelegate += OnRemoteInitialized;
         }
-
+        
         private static void OnRuntimeInitialized(AASEmulatorRuntime runtime)
+            => CheckAdvancedTagging(runtime.m_avatar);
+        
+        private static void OnRemoteInitialized(AASEmulatorRemote remote)
+            => CheckAdvancedTagging(remote.m_avatar);
+
+        private static void CheckAdvancedTagging(CVRAvatar avatar)
         {
             if (AASEmulatorCore.Instance == null 
                 || !AASEmulatorCore.Instance.EmulateAdvancedTagging)
                 return;
 
-            CVRAvatar avatar = runtime.m_avatar;
             if (avatar == null || !avatar.enableAdvancedTagging)
             {
                 if (avatar.advancedTaggingList.Count > 0)

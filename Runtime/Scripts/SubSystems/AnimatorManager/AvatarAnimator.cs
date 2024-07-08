@@ -227,22 +227,9 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         #region Public Methods
 
-        public void SetupManager(Animator animator)
+        public void SetupManager(Animator animator, bool isLocal = false)
         {
             Animator = animator;
-
-            if (IsLocal)
-            {
-                //animator.enabled = true; // only enforced for local client... if in vr...
-                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            }
-            else
-            {
-                animator.keepAnimatorStateOnDisable = true;
-            }
-
-            animator.applyRootMotion = false;
-            
             Setup();
         }
 

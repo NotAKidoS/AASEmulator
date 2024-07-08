@@ -104,7 +104,9 @@ namespace NAK.AASEmulator.Runtime
             Animator cloneAnimator = remoteClone.GetComponent<Animator>();
             // TODO: instantiate copy as asset being shared breaks anim replacement
             cloneAnimator.runtimeAnimatorController = AnimatorManager.Animator.runtimeAnimatorController;
-            cloneRuntime.AnimatorManager.SetupManager(remoteClone.GetComponent<Animator>());
+            cloneAnimator.keepAnimatorStateOnDisable = false;
+            cloneAnimator.applyRootMotion = false;
+            cloneRuntime.AnimatorManager.SetupManager(cloneAnimator);
             
             m_RemoteClones.Add(cloneRuntime);
             
@@ -469,7 +471,7 @@ namespace NAK.AASEmulator.Runtime
         
         private void Start()
         {
-            AASEmulatorCore.runtimeCreatedDelegate?.Invoke(this);
+            //AASEmulatorCore.runtimeCreatedDelegate?.Invoke(this);
             
             if (AASEmulatorCore.Instance == null)
             {
@@ -518,9 +520,14 @@ namespace NAK.AASEmulator.Runtime
                 ? m_avatar.overrides
                 : AASEmulatorCore.Instance.defaultRuntimeController;
 
+            m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             m_animator.applyRootMotion = false;
-            m_animator.enabled = true;
-
+            if (!m_animator.enabled) // only enforced for local client... if in vr...
+            {
+                SimpleLogger.LogError("Avatars animator is disabled by default. You must fix this prior to upload.", gameObject);
+                m_animator.enabled = true; // we will enable, but will also alert user
+            }
+            
             if (m_animator.isHuman)
             {
                 m_humanPoseHandler?.Dispose();

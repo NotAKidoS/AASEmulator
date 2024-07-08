@@ -41,9 +41,13 @@ namespace NAK.AASEmulator.Runtime
 
         public static RuntimeInitialized runtimeInitializedDelegate;
         
-        public delegate void RuntimeCreated(AASEmulatorRuntime runtime);
+        public delegate void RemoteInitialized(AASEmulatorRemote remote);
         
-        public static RuntimeCreated runtimeCreatedDelegate;
+        public static RemoteInitialized remoteInitializedDelegate;
+        
+        // public delegate void RuntimeCreated(AASEmulatorRuntime runtime);
+        //
+        // public static RuntimeCreated runtimeCreatedDelegate;
         
         public delegate void RuntimeDestroyed(AASEmulatorRuntime runtime);
         

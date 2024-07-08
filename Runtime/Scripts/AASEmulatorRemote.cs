@@ -1,5 +1,6 @@
 ﻿#if CVR_CCK_EXISTS
 using ABI.CCK.Components;
+using NAK.AASEmulator.Runtime.Extensions;
 using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEngine;
 
@@ -25,23 +26,66 @@ namespace NAK.AASEmulator.Runtime
         public bool IsApplyingNetIk { get; private set; }
 
         #endregion Public Properties
+
+        private bool IsInitialized { get; set; }
         
         public AASEmulatorRuntime SourceRuntime { get; set; }
         public AvatarAnimator AnimatorManager { get; set; }
         
         private AvatarEyeBlinkManager EyeBlinkManager { get; set; }
 
-        private CVRAvatar m_avatar;
+        public CVRAvatar m_avatar;
+
+        private void Initialize()
+        {
+            if (IsInitialized)
+                return;
+
+            if (AASEmulatorCore.Instance == null)
+            {
+                SimpleLogger.LogWarning("AAS Emulator Control is missing from the scene. Remote will not run!", gameObject);
+                return;
+            }
+
+            if (!gameObject.TryGetComponent(out m_avatar))
+            {
+                SimpleLogger.LogError("The CVRAvatar component is missing on the attached gameObject. Destroying...", gameObject);
+                DestroyImmediate(this);
+                return;
+            }
+            
+            // CVR will ensure this on initialization
+            if (!gameObject.TryGetComponent(out Animator animator))
+                animator = gameObject.AddComponent<Animator>();
+
+            // CVR replaces old CCK animation clips, but we won't even bother trying
+            animator.runtimeAnimatorController = m_avatar.overrides != null
+                ? m_avatar.overrides
+                : AASEmulatorCore.Instance.defaultRuntimeController;
+
+            animator.keepAnimatorStateOnDisable = false;
+            animator.applyRootMotion = false;
+            
+            if (animator.isHuman)
+                _poseHandler = new HumanPoseHandler(AnimatorManager.Animator.avatar, AnimatorManager.Animator.transform);
+            
+            AnimatorManager = new AvatarAnimator(false);
+            AnimatorManager.SetupManager(animator);
+            
+            EyeBlinkManager = new AvatarEyeBlinkManager(m_avatar);
+            //EyeLookManager = new AvatarEyeLookManager(m_avatar); // TODO: Implement
+            //LipSyncHandler = new AvatarLipSyncHandler(this);
+            
+            AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
+            AASEmulatorCore.remoteInitializedDelegate?.Invoke(this);
+            IsInitialized = true;
+        }
 
         #region Unity Events
         
         private void Start()
         {
-            AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
-            
-            m_avatar = GetComponent<CVRAvatar>();
-            EyeBlinkManager = new AvatarEyeBlinkManager(m_avatar);
-            if (AnimatorManager.IsHuman) _poseHandler = new HumanPoseHandler(AnimatorManager.Animator.avatar, AnimatorManager.Animator.transform);
+            Initialize();
         }
 
         private void OnDestroy()
