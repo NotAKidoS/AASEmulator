@@ -1,5 +1,4 @@
 ﻿#if CVR_CCK_EXISTS
-using System.Reflection;
 using ABI.CCK.Components;
 using UnityEngine;
 
@@ -62,23 +61,14 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
             foreach (CVRAvatarAdvancedTaggingEntry.Tags tag in System.Enum.GetValues(typeof(CVRAvatarAdvancedTaggingEntry.Tags)))
             {
-                if ((advTaggingEntry.tags & tag) == 0 || IsTagAllowed(tag)) 
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+                if ((advTaggingEntry.tags & tag) == 0 || AASEmulatorCore.Instance.IsTagAllowed(tag)) 
                     continue;
                 
                 if (advTaggingEntry.gameObject != null) Object.DestroyImmediate(advTaggingEntry.gameObject);
                 if (advTaggingEntry.fallbackGameObject != null) advTaggingEntry.fallbackGameObject.SetActive(true);
                 break;
             }
-        }
-        
-        private static bool IsTagAllowed(CVRAvatarAdvancedTaggingEntry.Tags tag)
-        {
-            AASEmulatorCore.AdvancedTags advTagging = AASEmulatorCore.Instance.advTagging;
-            FieldInfo field = advTagging.GetType().GetField(tag.ToString());
-            if (field != null && field.FieldType == typeof(bool)) 
-                return (bool)field.GetValue(advTagging);
-            
-            return false;
         }
         
         #endregion Public Methods

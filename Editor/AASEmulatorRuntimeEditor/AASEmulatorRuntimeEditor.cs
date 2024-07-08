@@ -104,6 +104,9 @@ namespace NAK.AASEmulator.Editor
                 EditorGUI.indentLevel++;
                 EditorGUILayout.BeginVertical("box");
 
+                string aasStatus = _targetScript.IsUsingAvatarAdvancedSettings ? "Using Avatar Advanced Settings" : "Not Using Avatar Advanced Settings";
+                EditorGUILayout.LabelField("AAS Status:", aasStatus);
+                
                 string emoteStatus = _targetScript.IsEmotePlaying ? "Playing an Emote - Tracking Disabled" : "Not Playing an Emote - Tracking Enabled";
                 EditorGUILayout.LabelField("Emote Status:", emoteStatus);
                 

@@ -1,3 +1,4 @@
+#if CVR_CCK_EXISTS
 using ABI.CCK.Components;
 using System;
 using UnityEngine;
@@ -105,3 +106,4 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         }
     }
 }
+#endif

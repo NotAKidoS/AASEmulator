@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if CVR_CCK_EXISTS
+using System;
 using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
@@ -175,6 +176,24 @@ namespace NAK.AASEmulator.Runtime
             // If I get around to emulating Triggers & Pointers, I will need to replicate that... _-_
             return clone;
         }
+        
+        public bool IsTagAllowed(CVRAvatarAdvancedTaggingEntry.Tags advTag)
+        {
+            return advTag switch
+            {
+                CVRAvatarAdvancedTaggingEntry.Tags.LoudAudio => advTagging.LoudAudio,
+                CVRAvatarAdvancedTaggingEntry.Tags.LongRangeAudio => advTagging.LongRangeAudio,
+                CVRAvatarAdvancedTaggingEntry.Tags.ScreenFx => advTagging.ScreenFx,
+                CVRAvatarAdvancedTaggingEntry.Tags.FlashingColors => advTagging.FlashingColors,
+                CVRAvatarAdvancedTaggingEntry.Tags.FlashingLights => advTagging.FlashingLights,
+                CVRAvatarAdvancedTaggingEntry.Tags.Violence => advTagging.Violence,
+                CVRAvatarAdvancedTaggingEntry.Tags.Gore => advTagging.Gore,
+                CVRAvatarAdvancedTaggingEntry.Tags.Suggestive => advTagging.Suggestive,
+                CVRAvatarAdvancedTaggingEntry.Tags.Nudity => advTagging.Nudity,
+                CVRAvatarAdvancedTaggingEntry.Tags.Horror => advTagging.Horror,
+                _ => false
+            };
+        }
 
         #endregion Public Methods
 
@@ -269,17 +288,17 @@ namespace NAK.AASEmulator.Runtime
         #region Game Events
         
         // body control
-        private readonly Dictionary<Animator, AASEmulatorRuntime> m_runtimeMap = new();
+        private readonly Dictionary<int, AASEmulatorRuntime> m_runtimeMap = new();
         
         private void OnRuntimeAdded(AASEmulatorRuntime runtime)
-            => m_runtimeMap[runtime.m_animator] = runtime;
+            => m_runtimeMap[runtime.AnimatorHash] = runtime;
         
         private void OnRuntimeRemoved(AASEmulatorRuntime runtime)
-            => m_runtimeMap.Remove(runtime.m_animator);
+            => m_runtimeMap.Remove(runtime.AnimatorHash);
         
         private void OnBodyControlTask(Animator animator, BodyControlTask task)
         {
-            if (!m_runtimeMap.TryGetValue(animator, out AASEmulatorRuntime runtime))
+            if (!m_runtimeMap.TryGetValue(animator.GetHashCode(), out AASEmulatorRuntime runtime))
                 return;
 
             switch (task.target)
@@ -313,3 +332,4 @@ namespace NAK.AASEmulator.Runtime
         #endregion Game Events
     }
 }
+#endif

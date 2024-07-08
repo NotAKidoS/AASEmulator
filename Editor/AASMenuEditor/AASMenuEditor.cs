@@ -1,4 +1,5 @@
-﻿using NAK.AASEmulator.Runtime;
+﻿using System;
+using NAK.AASEmulator.Runtime;
 using UnityEditor;
 using UnityEngine;
 using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
@@ -10,14 +11,14 @@ namespace NAK.AASEmulator.Editor
     [CustomEditor(typeof(AASMenu))]
     public class AASMenuEditor : UnityEditor.Editor
     {
-        #region Variables
+        #region Private Variables
 
         private AASMenu _menu;
         private Vector2 _scrollPosition;
 
-        #endregion
+        #endregion Private Variables
 
-        #region Unity / GUI Methods
+        #region Unity Events
 
         private void OnEnable()
         {
@@ -37,7 +38,7 @@ namespace NAK.AASEmulator.Editor
             Draw_AASMenus();
         }
 
-        #endregion Unity / GUI Methods
+        #endregion Unity Events
 
         #region Drawing Methods
 
@@ -90,7 +91,7 @@ namespace NAK.AASEmulator.Editor
                 case SettingsType.Slider:
                     float oldSliderValue = entry.valueX;
                     float newSliderValue = EditorGUILayout.Slider("Value", oldSliderValue, 0f, 1f);
-                    if (newSliderValue != oldSliderValue)
+                    if (Math.Abs(newSliderValue - oldSliderValue) > float.Epsilon)
                     {
                         _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newSliderValue);
                     }
@@ -98,13 +99,13 @@ namespace NAK.AASEmulator.Editor
                 case SettingsType.InputSingle:
                     float oldSingleValue = entry.valueX;
                     float newSingleValue = EditorGUILayout.FloatField("Value", oldSingleValue);
-                    if (newSingleValue != oldSingleValue)
+                    if (Math.Abs(newSingleValue - oldSingleValue) > float.Epsilon)
                     {
                         _menu.AnimatorManager.Parameters.SetParameter(entry.machineName, entry.valueX = newSingleValue);
                     }
                     break;
                 case SettingsType.InputVector2:
-                    Vector2 oldVector2Value = new Vector2(entry.valueX, entry.valueY);
+                    Vector2 oldVector2Value = new(entry.valueX, entry.valueY);
                     Vector2 newVector2Value = EditorGUILayout.Vector2Field("Value", oldVector2Value);
                     if (newVector2Value != oldVector2Value)
                     {
@@ -113,7 +114,7 @@ namespace NAK.AASEmulator.Editor
                     }
                     break;
                 case SettingsType.InputVector3:
-                    Vector3 oldVector3Value = new Vector3(entry.valueX, entry.valueY, entry.valueZ);
+                    Vector3 oldVector3Value = new(entry.valueX, entry.valueY, entry.valueZ);
                     Vector3 newVector3Value = EditorGUILayout.Vector3Field("Value", oldVector3Value);
                     if (newVector3Value != oldVector3Value)
                     {

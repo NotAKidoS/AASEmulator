@@ -1,4 +1,5 @@
-﻿using ABI.CCK.Components;
+﻿#if CVR_CCK_EXISTS
+using ABI.CCK.Components;
 using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEngine;
 
@@ -40,7 +41,7 @@ namespace NAK.AASEmulator.Runtime
             
             m_avatar = GetComponent<CVRAvatar>();
             EyeBlinkManager = new AvatarEyeBlinkManager(m_avatar);
-            _poseHandler = new HumanPoseHandler(AnimatorManager.Animator.avatar, AnimatorManager.Animator.transform);
+            if (AnimatorManager.IsHuman) _poseHandler = new HumanPoseHandler(AnimatorManager.Animator.avatar, AnimatorManager.Animator.transform);
         }
 
         private void OnDestroy()
@@ -53,7 +54,7 @@ namespace NAK.AASEmulator.Runtime
             IsEmotePlaying = AnimatorManager.IsEmotePlaying();
             IsApplyingNetIk = !IsEmotePlaying;
             
-            ApplyMuscleValues();
+            if (AnimatorManager.IsHuman) ApplyMuscleValues();
             
             AnimatorManager.IsLocal = false;
             AnimatorManager.VisemeIdx = AnimatorManager.VisemeIdx;
@@ -131,3 +132,4 @@ namespace NAK.AASEmulator.Runtime
         #endregion Net IK Handling
     }
 }
+#endif

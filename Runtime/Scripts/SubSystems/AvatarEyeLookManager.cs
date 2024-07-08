@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if CVR_CCK_EXISTS
+using System.Collections.Generic;
 using ABI.CCK.Components;
 using UnityEngine;
 
@@ -210,9 +211,11 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         {
             Transform root = m_avatar.transform;
             Animator animator = root.GetComponent<Animator>();
+            if (animator == null) return;
             
             Transform leftEyeTransform = animator.GetBoneTransform(HumanBodyBones.LeftEye);
             Transform rightEyeTransform = animator.GetBoneTransform(HumanBodyBones.RightEye);
+            if (leftEyeTransform == null && rightEyeTransform == null) return;
             
             // get eye limits from humanoid configuration
             Vector2 upDownLimitRight;
@@ -314,3 +317,4 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         #endregion
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using ABI.CCK.Components;
+﻿#if CVR_CCK_EXISTS
+using ABI.CCK.Components;
 using NAK.AASEmulator.Runtime.SubSystems;
 using System;
 using System.Collections.Generic;
@@ -51,6 +52,11 @@ namespace NAK.AASEmulator.Runtime
 
         public bool IsEmotePlaying { get; private set; }
 
+        // this is not animatable in *latest* cck as i added NonKeyable attribute, but i forgor to mirror change to client so
+        // if you remove that attribute you can animate off/on AAS syncing :)
+        public bool IsUsingAvatarAdvancedSettings
+            => m_avatar is { avatarUsesAdvancedSettings: true };
+        
         public bool IsActiveOffset { get; private set; }
 
         #endregion Public Properties
@@ -94,6 +100,10 @@ namespace NAK.AASEmulator.Runtime
             cloneRuntime.isInitializedExternally = true;
             cloneRuntime.SourceRuntime = this;
             cloneRuntime.AnimatorManager = new AvatarAnimator(false);
+
+            Animator cloneAnimator = remoteClone.GetComponent<Animator>();
+            // TODO: instantiate copy as asset being shared breaks anim replacement
+            cloneAnimator.runtimeAnimatorController = AnimatorManager.Animator.runtimeAnimatorController;
             cloneRuntime.AnimatorManager.SetupManager(remoteClone.GetComponent<Animator>());
             
             m_RemoteClones.Add(cloneRuntime);
@@ -363,6 +373,8 @@ namespace NAK.AASEmulator.Runtime
 
         #region Variables
         
+        public int AnimatorHash { get; private set; }
+        
         //public AnimatorManager AnimatorManager { get; private set; }
         public AvatarAnimator AnimatorManager { get; private set; }
         private AvatarEyeBlinkManager EyeBlinkManager { get; set; }
@@ -381,6 +393,7 @@ namespace NAK.AASEmulator.Runtime
         // Humanoid handling
         internal HumanPoseHandler m_humanPoseHandler;
         internal HumanPose m_humanPose;
+        private Transform m_headTransform;
         private Transform m_hipTransform;
         
         // IK handling
@@ -423,8 +436,13 @@ namespace NAK.AASEmulator.Runtime
             get => _inputJump;
             set
             {
+                if (_inputJump == value) 
+                    return;
+                
                 _inputJump = value;
-                if (_inputJump) return;
+                if (_inputJump) 
+                    return;
+                
                 _jumpTime = 0f;
                 Grounded = true;
             }
@@ -511,6 +529,10 @@ namespace NAK.AASEmulator.Runtime
                 m_hipTransform = m_animator.GetBoneTransform(HumanBodyBones.Hips);
             }
 
+            // we do this because identifying a runtime by component reference *will* fail
+            // if the component is destroyed before our callbacks can execute
+            AnimatorHash = m_animator.GetHashCode();
+            
             AnimatorManager = new AvatarAnimator(true);
             AnimatorManager.SetupManager(m_animator);
             
@@ -657,8 +679,12 @@ namespace NAK.AASEmulator.Runtime
             // Also does not run in FBT
             if (!IsActiveOffset)
                 return;
+
+            if (m_headTransform == null
+                || m_hipTransform == null)
+                return;
             
-            Vector3 headPosition = m_animator.GetBoneTransform(HumanBodyBones.Head).position;
+            Vector3 headPosition = m_headTransform.position;
             Vector3 offset = headPosition - m_animator.transform.position;
             offset.y = 0f; // let me use with {} please :(
             m_hipTransform.position -= offset;
@@ -809,6 +835,9 @@ namespace NAK.AASEmulator.Runtime
             aasSyncTimer += Time.deltaTime;
             if (!(aasSyncTimer >= AAS_SYNC_RATE)) return;
             aasSyncTimer = 0f;
+
+            if (!IsUsingAvatarAdvancedSettings)
+                return; // did you know you could animate that :3
             
             if (!AnimatorManager.OutboundBuffer.AASParameterChangedSinceLastSync)
                 return;
@@ -826,3 +855,4 @@ namespace NAK.AASEmulator.Runtime
         #endregion Remote Clone Syncing
     }
 }
+#endif

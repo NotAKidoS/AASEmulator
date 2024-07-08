@@ -1,3 +1,4 @@
+#if CVR_CCK_EXISTS
 using ABI.CCK.Components;
 using System.Collections.Generic;
 using UnityEngine;
@@ -135,3 +136,4 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         #endregion Private Methods
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if CVR_CCK_EXISTS
 using ABI.CCK.Scripts;
 using NAK.AASEmulator.Runtime.SubSystems;
 using System.Collections.Generic;
@@ -139,7 +140,7 @@ namespace NAK.AASEmulator.Runtime
         {
             public string menuName;
             public string machineName;
-            public CVRAdvancedSettingsEntry.SettingsType settingType;
+            public SettingsType settingType;
             public float valueX, valueY, valueZ;
             public string[] menuOptions;
         }
@@ -147,3 +148,4 @@ namespace NAK.AASEmulator.Runtime
         #endregion Menu Entry Class
     }
 }
+#endif

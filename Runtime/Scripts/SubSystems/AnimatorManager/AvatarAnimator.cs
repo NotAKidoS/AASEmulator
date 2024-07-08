@@ -303,7 +303,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         {
             int layerCount = Animator.layerCount;
             for (int i = 0; i < layerCount; i++) LayerIndices[Animator.GetLayerName(i)] = i;
-
+            
             // Check for default CVR layers
             _locomotionEmotesLayerIdx = Animator.GetLayerIndex(AvatarDefinitions.LOCOMOTION_EMOTES_LAYER_NAME);
             _leftHandLayerIdx = Animator.GetLayerIndex(AvatarDefinitions.HAND_LEFT_LAYER_NAME);
