@@ -4,17 +4,17 @@ A debug tool that makes it a bit nicer to test your ChilloutVR avatars in the Un
 
 It is mostly fluff. What you see is what you get:
 
-![image](https://github.com/NotAKidOnSteam/AASEmulator/assets/37721153/00fbd576-a1c6-4b03-819b-52f26ad1ad9d)
+![image](https://github.com/NotAKidoS/AASEmulator/assets/37721153/f63235bd-9ad5-4560-af4f-931dac2cfcd0)
 
 ## GUI Features
 * Scrolling on dropdowns to advance sliders.
 * Funni joystick, can test normalized movement values.
 
 ## Emulator Features
-- Info display for Emote, Eye, Blink, and Lipsync status.
+- Info display for Emote, Eye, Blink, Lipsync, and Active Body Offset status.
 - Simulated Eye Blink, Eye Movement, and Visemes.
 - Simulated Avatar Advanced Tagging.
-- ~~Simulated AAS Syncing to Remote Avatar~~ (soon)
+- Simulated AAS Syncing & Net IK to Remote Avatar.
 
 ## Have any Questions about Avatar Creation?
 Check out the linked [Common Creator FAQ](https://github.com/NotAKidOnSteam/AASEmulator/wiki/Common-Creator-FAQ) wiki page for some general good-to-know information before fully diving into ChilloutVR Avatar Creation. Some things mentioned there aren't properly documented elsewhere.
