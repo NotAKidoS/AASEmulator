@@ -4,6 +4,7 @@ using ABI.CCK.Components;
 using System.Collections.Generic;
 using System.Linq;
 using NAK.AASEmulator.Runtime.Extensions;
+using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting.APIUpdating;
@@ -13,12 +14,13 @@ using Object = UnityEngine.Object;
 namespace NAK.AASEmulator.Runtime
 {
     [MovedFrom(autoUpdateAPI: false, sourceClassName: "AASEmulator")]
+    [AddComponentMenu("")]
     [HelpURL(AAS_EMULATOR_GIT_URL)]
     public class AASEmulatorCore : MonoBehaviour
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.2";
+        public const string AAS_EMULATOR_VERSION = "0.1.3";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -67,6 +69,9 @@ namespace NAK.AASEmulator.Runtime
         
         [Tooltip("Emulate the AAS Menu on all avatars. This will add the AASMenu component to all avatars in the scene.")]
         public bool EmulateAASMenu = true;
+        
+        [Tooltip("Emulate the Shader Globals provided by ChilloutVR.")]
+        public bool EmulateShaderGlobals;
 
         [Tooltip("The default animator controller to use for avatars that don't have an override controller set. Only change this if you know what you're doing.")]
         public RuntimeAnimatorController defaultRuntimeController;
@@ -82,6 +87,9 @@ namespace NAK.AASEmulator.Runtime
         
         [FormerlySerializedAs("EmulateEyeTracking")] [Tooltip("Emulate the simulated eye tracking on avatars.")]
         public bool EmulateEyeLook;
+
+        [Tooltip("Emulate the FPRExclusion component. This applies to all local avatars within scene.")]
+        public bool EmulateFPRExclusions;
 
         #endregion Settings / Avatar Simulation
         
@@ -146,11 +154,13 @@ namespace NAK.AASEmulator.Runtime
             }
             Instance = this;
             
+            if (EmulateShaderGlobals)
+                gameObject.AddComponentIfMissing<ShaderGlobalController>();
+
+            gameObject.AddComponentIfMissing<TransformHiderManager>();
+            
             runtimeInitializedDelegate += OnRuntimeAdded;
             runtimeRemovedDelegate += OnRuntimeRemoved;
-            
-            BodyControl.OnExecuteEnterTask.AddListener(OnBodyControlTask);
-            BodyControl.OnExecuteExitTask.AddListener(OnBodyControlTask);
 
             LoadDefaultCCKController();
             StartEmulator();
@@ -210,6 +220,9 @@ namespace NAK.AASEmulator.Runtime
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
+            
+            BodyControl.OnExecuteEnterTask.AddListener(OnBodyControlTask);
+            BodyControl.OnExecuteExitTask.AddListener(OnBodyControlTask);
 
             if (m_CloneInstantiationTarget == null)
             {
@@ -221,13 +234,19 @@ namespace NAK.AASEmulator.Runtime
                 //m_CloneInstantiationTarget.transform.SetParent(transform);
             }
             
-            ScanForAvatars(gameObject.scene);
+            // get all loaded scenes
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                ScanForAvatars(SceneManager.GetSceneAt(i));
         }
 
         private void StopEmulator()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             
+            BodyControl.OnExecuteEnterTask.RemoveListener(OnBodyControlTask);
+            BodyControl.OnExecuteExitTask.RemoveListener(OnBodyControlTask);
+            
+            Destroy(m_CloneInstantiationTarget);
             foreach (AASEmulatorRuntime runtime in m_runtimes)
                 Destroy(runtime);
 

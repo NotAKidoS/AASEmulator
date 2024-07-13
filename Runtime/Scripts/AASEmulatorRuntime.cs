@@ -3,6 +3,7 @@ using ABI.CCK.Components;
 using NAK.AASEmulator.Runtime.SubSystems;
 using System;
 using System.Collections.Generic;
+using Experiment.NewHider;
 using NAK.AASEmulator.Runtime.Extensions;
 using UnityEngine;
 
@@ -19,7 +20,9 @@ namespace NAK.AASEmulator.Runtime
         public static event RepaintRequestHandler OnRequestRepaint;
 
         [HideInInspector] public bool remoteClonesFoldout;
+        [HideInInspector] public bool localAvatarFoldout;
         [HideInInspector] public bool avatarInfoFoldout = true;
+        [HideInInspector] public bool aasSyncingInfoFoldout;
         [HideInInspector] public bool bodyControlFoldout;
         [HideInInspector] public bool lipSyncFoldout = true;
         [HideInInspector] public bool builtInLocomotionFoldout = true;
@@ -130,6 +133,42 @@ namespace NAK.AASEmulator.Runtime
         }
         
         #endregion Remote Clones
+
+        #region Local Avatar
+
+        private bool _displayFPRExclusions;
+        public bool DisplayFPRExclusions
+        {
+            get => _displayFPRExclusions;
+            set
+            {
+                if (_displayFPRExclusions == value) 
+                    return;
+            }
+        }
+
+        private MirrorClone _mirrorReflection;
+
+        private bool _displayMirrorReflection;
+        public bool DisplayMirrorReflection
+        {
+            get => _displayMirrorReflection && _mirrorReflection != null;
+            set
+            {
+                if (_displayMirrorReflection == value) return;
+                _displayMirrorReflection = value;
+
+                if (_displayMirrorReflection && _mirrorReflection == null)
+                {
+                    _mirrorReflection = MirrorClone.Create(transform);
+                    _mirrorReflection.transform.position -= transform.right;
+                }
+                else if (!_displayMirrorReflection && _mirrorReflection != null)
+                    Destroy(_mirrorReflection.gameObject); 
+            }
+        }
+
+        #endregion Local Avatar
 
         #region Body Control
 
@@ -550,8 +589,10 @@ namespace NAK.AASEmulator.Runtime
             AASEmulatorCore.addTopComponentDelegate?.Invoke(this);
             AASEmulatorCore.runtimeInitializedDelegate?.Invoke(this);
             IsInitialized = true;
-
+            
             SetValuesToDefault();
+            
+            TransformHiderUtils.SetupAvatar(gameObject);
         }
 
         private void SetValuesToDefault()
@@ -567,34 +608,6 @@ namespace NAK.AASEmulator.Runtime
 
             Grounded = true;
         }
-
-        // private void InitializeLipSync()
-        // {
-        //     // Get jaw bone index
-        //     if (_jawBoneMuscleIndex == -1)
-        //         _jawBoneMuscleIndex = Array.FindIndex(HumanTrait.MuscleName, muscle => muscle.Contains("Jaw"));
-        //
-        //     if (m_avatar.bodyMesh != null && m_avatar.visemeBlendshapes != null)
-        //     {
-        //         // Rough replication of games iffy viseme smoothing... OVRLipSync only wants 1-100!
-        //         _visemeSmoothing = m_avatar.visemeSmoothing;
-        //         _visemeSmoothingFactor = Mathf.Clamp(100 - _visemeSmoothing, 1f, 100f) / 100f;
-        //
-        //         m_visemeBlendShapeIndicies =
-        //             new int[m_avatar.visemeBlendshapes?.Length ?? 0];
-        //
-        //         if (m_avatar.visemeBlendshapes == null)
-        //             return;
-        //
-        //         for (var i = 0; i < m_avatar.visemeBlendshapes.Length; i++)
-        //             m_visemeBlendShapeIndicies[i] =
-        //                 m_avatar.bodyMesh.sharedMesh.GetBlendShapeIndex(m_avatar.visemeBlendshapes[i]);
-        //     }
-        //     else
-        //     {
-        //         m_visemeBlendShapeIndicies = Array.Empty<int>();
-        //     }
-        // }
 
         #endregion Initialization
 
@@ -762,6 +775,7 @@ namespace NAK.AASEmulator.Runtime
         {
             AnimatorManager.IsLocal = true;
             AnimatorManager.VisemeIdx = Viseme;
+            AnimatorManager.VisemeLoudness = VisemeLoudness;
             
             AnimatorManager.GestureLeft = _gestureLeft;
             AnimatorManager.GestureRight = _gestureRight;

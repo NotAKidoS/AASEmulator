@@ -53,8 +53,16 @@ namespace NAK.AASEmulator.Editor
 
         private void Draw_AASMenus()
         {
+            int entriesCount = _menu.entries.Count;
+            if (entriesCount == 0)
+            {
+                EditorGUILayout.HelpBox("No menu entries found for this avatar.", MessageType.Info);
+                return;
+            }
+            
+            int height = Mathf.Min(entriesCount * 100, 600);
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, 
-                false, false, GUILayout.Height(600));
+                false, false, GUILayout.Height(height));
             
             foreach (AASMenuEntry t in _menu.entries)
                 DisplayMenuEntry(t);

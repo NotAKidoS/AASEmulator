@@ -5,6 +5,7 @@ using static NAK.AASEmulator.Editor.EditorExtensions;
 
 namespace NAK.AASEmulator.Editor
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(AASEmulatorRemote))]
     public class AASEmulatorRemoteEditor : UnityEditor.Editor
     {

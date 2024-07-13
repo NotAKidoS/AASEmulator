@@ -201,6 +201,17 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             }
         }
         
+        private float _visemeLoudness;
+        public float VisemeLoudness
+        {
+            get => _visemeLoudness;
+            set
+            {
+                _visemeLoudness = value;
+                Parameters.SetParameter("VisemeLoudness", value, true);
+            }
+        }
+        
         #endregion Core Parameters
         
         #region AAS Syncing

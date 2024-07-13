@@ -14,16 +14,18 @@ namespace NAK.AASEmulator.Editor
 
         private AASEmulatorCore _core;
 
-        #endregion
+        #endregion Private Variables
 
         #region Serialized Properties
         
         private SerializedProperty m_onlyInitializeOnSelect;
         private SerializedProperty m_emulateAASMenu;
+        private SerializedProperty m_emulateShaderGlobals;
         private SerializedProperty m_defaultRuntimeController;
         
         private SerializedProperty m_emulateEyeBlink;
         private SerializedProperty m_emulateEyeLook;
+        private SerializedProperty m_emulateFPRExclusions;
         
         private SerializedProperty m_emulateAdvancedTagging;
         private SerializedProperty m_tagLoudAudio;
@@ -37,7 +39,7 @@ namespace NAK.AASEmulator.Editor
         private SerializedProperty m_tagNudity;
         private SerializedProperty m_tagHorror;
 
-        #endregion
+        #endregion Serialized Properties
 
         #region Unity / GUI Methods
 
@@ -53,10 +55,12 @@ namespace NAK.AASEmulator.Editor
             // serialized properties
             m_onlyInitializeOnSelect = serializedObject.FindProperty(nameof(AASEmulatorCore.OnlyInitializeOnSelect));
             m_emulateAASMenu = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAASMenu));
+            m_emulateShaderGlobals = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateShaderGlobals));
             m_defaultRuntimeController = serializedObject.FindProperty(nameof(AASEmulatorCore.defaultRuntimeController));
             
             m_emulateEyeBlink = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateEyeBlink));
             m_emulateEyeLook = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateEyeLook));
+            m_emulateFPRExclusions = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateFPRExclusions));
             
             m_emulateAdvancedTagging = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAdvancedTagging));
             m_tagLoudAudio = GetTaggingProperty(nameof(AASEmulatorCore.AdvancedTags.LoudAudio));
@@ -109,6 +113,7 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.LabelField("Emulator / Configuration", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_onlyInitializeOnSelect);
             EditorGUILayout.PropertyField(m_emulateAASMenu);
+            EditorGUILayout.PropertyField(m_emulateShaderGlobals);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
         }
 
@@ -117,6 +122,7 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.LabelField("Emulator / Avatar Simulation", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_emulateEyeBlink);
             EditorGUILayout.PropertyField(m_emulateEyeLook);
+            EditorGUILayout.PropertyField(m_emulateFPRExclusions);
         }
 
         private void Draw_Emulator_AdvTagging()

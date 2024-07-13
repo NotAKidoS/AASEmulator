@@ -39,6 +39,7 @@ namespace NAK.AASEmulator.Editor
             Draw_ScriptWarning();
 
             Draw_RemoteClones();
+            //Draw_LocalAvatar();
             Draw_AvatarInfo();
             
             Draw_LipSync();
@@ -65,19 +66,14 @@ namespace NAK.AASEmulator.Editor
         private void Draw_RemoteClones()
         {
             EditorGUILayout.Space();
-            _targetScript.remoteClonesFoldout = EditorGUILayout.Foldout(_targetScript.remoteClonesFoldout, "Remote Clones & Syncing", true, s_BoldFoldoutStyle);
+            _targetScript.remoteClonesFoldout = EditorGUILayout.Foldout(_targetScript.remoteClonesFoldout, "Remote Clones & Mirror Reflection", true, s_BoldFoldoutStyle);
 
             if (_targetScript.remoteClonesFoldout)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.BeginVertical("box");
-
-                EditorGUILayout.LabelField("Float Bit Usage: " + _targetScript.AnimatorManager.SyncedFloatUsage);
-                EditorGUILayout.LabelField("Int Bit Usage: " + _targetScript.AnimatorManager.SyncedIntUsage);
-                EditorGUILayout.LabelField("Byte Bit Usage: " + _targetScript.AnimatorManager.SyncedByteUsage);
-                EditorGUILayout.LabelField("Total Usage: " + _targetScript.AnimatorManager.SyncedTotalUsage + " / " + AvatarDefinitions.AAS_MAX_SYNCED_BITS);
-
-                EditorGUILayout.Space();
+                
+                _targetScript.DisplayMirrorReflection = EditorGUILayout.Toggle("Display Mirror Reflection", _targetScript.DisplayMirrorReflection);
                 
                 int newRemoteCloneCount = EditorGUILayout.IntField("Remote Clone Count", _targetScript.RemoteCloneCount, s_BoldLabelStyle);
                 if (newRemoteCloneCount != _targetScript.RemoteCloneCount) _targetScript.RemoteCloneCount = newRemoteCloneCount;
@@ -94,6 +90,24 @@ namespace NAK.AASEmulator.Editor
             }
         }
 
+        private void Draw_LocalAvatar()
+        {
+            EditorGUILayout.Space();
+            _targetScript.localAvatarFoldout = EditorGUILayout.Foldout(_targetScript.localAvatarFoldout, "FPRExclusions & Mirror Reflection", true, s_BoldFoldoutStyle);
+
+            if (_targetScript.localAvatarFoldout)
+            {   
+                EditorGUI.indentLevel++;
+                EditorGUILayout.BeginVertical("box");
+                
+                _targetScript.DisplayFPRExclusions = EditorGUILayout.Toggle("Display FPR Exclusions", _targetScript.DisplayFPRExclusions);
+                _targetScript.DisplayMirrorReflection = EditorGUILayout.Toggle("Display Mirror Reflection", _targetScript.DisplayMirrorReflection);
+
+                EditorGUILayout.EndVertical();
+                EditorGUI.indentLevel--;
+            }
+        }
+        
         private void Draw_AvatarInfo()
         {
             EditorGUILayout.Space();
@@ -106,6 +120,8 @@ namespace NAK.AASEmulator.Editor
 
                 string aasStatus = _targetScript.IsUsingAvatarAdvancedSettings ? "Using Avatar Advanced Settings" : "Not Using Avatar Advanced Settings";
                 EditorGUILayout.LabelField("AAS Status:", aasStatus);
+                
+                Draw_AASSyncingInfo();
                 
                 string emoteStatus = _targetScript.IsEmotePlaying ? "Playing an Emote - Tracking Disabled" : "Not Playing an Emote - Tracking Enabled";
                 EditorGUILayout.LabelField("Emote Status:", emoteStatus);
@@ -125,6 +141,23 @@ namespace NAK.AASEmulator.Editor
                 Draw_BodyControlState();
                 
                 EditorGUILayout.EndVertical();
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        private void Draw_AASSyncingInfo()
+        {
+            _targetScript.aasSyncingInfoFoldout = EditorGUILayout.Foldout(_targetScript.aasSyncingInfoFoldout, "AAS Syncing Info", true, s_BoldFoldoutStyle);
+
+            if (_targetScript.aasSyncingInfoFoldout)
+            {
+                EditorGUI.indentLevel++;
+                
+                EditorGUILayout.LabelField("Float Bit Usage: " + _targetScript.AnimatorManager.SyncedFloatUsage);
+                EditorGUILayout.LabelField("Int Bit Usage: " + _targetScript.AnimatorManager.SyncedIntUsage);
+                EditorGUILayout.LabelField("Byte Bit Usage: " + _targetScript.AnimatorManager.SyncedByteUsage);
+                EditorGUILayout.LabelField("Total Usage: " + _targetScript.AnimatorManager.SyncedTotalUsage + " / " + AvatarDefinitions.AAS_MAX_SYNCED_BITS);
+                
                 EditorGUI.indentLevel--;
             }
         }
@@ -179,6 +212,7 @@ namespace NAK.AASEmulator.Editor
                         HandlePopupScroll(ref newVisemeIndex, 0, Enum.GetNames(typeof(AvatarDefinitions.VisemeIndex)).Length - 1);
                         _targetScript.VisemeIdx = (AvatarDefinitions.VisemeIndex)newVisemeIndex;
                         _targetScript.Viseme = EditorGUILayout.IntSlider("Viseme", _targetScript.Viseme, 0, 14);
+                        _targetScript.VisemeLoudness = EditorGUILayout.Slider("Viseme Loudness", _targetScript.VisemeLoudness, 0f, 1f);
                         break;
                     case AvatarDefinitions.VisemeModeIndex.Single_Blendshape:
                     case AvatarDefinitions.VisemeModeIndex.Jaw_Bone:
