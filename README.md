@@ -15,6 +15,8 @@ It is mostly fluff. What you see is what you get:
 - Simulated Eye Blink, Eye Movement, and Visemes.
 - Simulated Avatar Advanced Tagging.
 - Simulated AAS Syncing & Net IK to Remote Avatar.
+- Simulated FPRExclusions.
+- Mirror Reflection visual in world space.
 
 ## Have any Questions about Avatar Creation?
 Check out the linked [Common Creator FAQ](https://github.com/NotAKidOnSteam/AASEmulator/wiki/Common-Creator-FAQ) wiki page for some general good-to-know information before fully diving into ChilloutVR Avatar Creation. Some things mentioned there aren't properly documented elsewhere.
