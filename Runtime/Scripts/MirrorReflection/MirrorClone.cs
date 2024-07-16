@@ -13,6 +13,8 @@ namespace NAK.AASEmulator.Runtime
             return MirrorClone;
         }
         
+        [Tooltip("Trick most shaders into thinking we are a mirror.")]
+        public bool TrickShaders = true;
         public Transform sourceTransform;
 
         // Transform references
@@ -125,10 +127,13 @@ namespace NAK.AASEmulator.Runtime
             
             // the shittiest hack to trick most shaders into thinking we are a mirror lol
             // https://github.com/cnlohr/shadertrixx?tab=readme-ov-file#are-you-in-a-mirror
-            Matrix4x4 projectionMatrix = _ourCamera.projectionMatrix;
-            projectionMatrix[2, 0] += 1e-5f;
-            projectionMatrix[2, 1] += 1e-5f;
-            _ourCamera.projectionMatrix = projectionMatrix;
+            if (TrickShaders)
+            {
+                Matrix4x4 projectionMatrix = _ourCamera.projectionMatrix;
+                projectionMatrix[2, 0] += 1e-5f;
+                projectionMatrix[2, 1] += 1e-5f;
+                _ourCamera.projectionMatrix = projectionMatrix;
+            }
             
             // Render the custom camera to the render texture
             _ourCamera.Render();

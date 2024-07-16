@@ -322,7 +322,7 @@ namespace NAK.AASEmulator.Runtime
                     if (!_prone) Upright = 1f;
                     return;
                 }
-                Prone = false;
+                _prone = false;
                 _upright = AVATAR_CROUCH_LIMIT;
             }
         }
@@ -343,7 +343,7 @@ namespace NAK.AASEmulator.Runtime
                     if (!_crouching) Upright = 1f;
                     return;
                 }
-                Crouching = false;
+                _crouching = false;
                 _upright = AVATAR_PRONE_LIMIT;
             }
         }
@@ -360,8 +360,8 @@ namespace NAK.AASEmulator.Runtime
                 
                 _flying = value;
                 if (!_flying) return;
-                Crouching = false;
-                Prone = false;
+                _crouching = false;
+                _prone = false;
             }
         }
         
@@ -377,17 +377,33 @@ namespace NAK.AASEmulator.Runtime
                 
                 _sitting = value;
                 if (!_sitting) return;
-                Crouching = false;
-                Prone = false;
-                Flying = false;
+                _crouching = false;
+                _prone = false;
+                _flying = false;
                 Grounded = true;
             }
         }
-        
-        public bool Swimming;
+
+        private bool _swimming;
+        public bool Swimming
+        {
+            get => _swimming;
+            set
+            {
+                if (_swimming == value) 
+                    return;
+                
+                _swimming = value;
+                if (!_swimming) return;
+                _crouching = false;
+                _prone = false;
+                _flying = false;
+                Grounded = true;
+            }
+        }
         public bool Grounded = true;
-        
-        public bool CanCrouchProne => !Flying && !Swimming && !Sitting;
+
+        private bool CanCrouchProne => !Flying && !Swimming && !Sitting;
         
         #endregion Built-in inputs / Locomotion
 

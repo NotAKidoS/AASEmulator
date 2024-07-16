@@ -32,6 +32,7 @@ public class FPRExclusionWrapperEditor : Editor
 public class FPRExclusionWrapper : EditorOnlyMonoBehaviour
 {
     internal readonly List<int> affectedVertexIndices = new();
+    internal readonly List<float> affectedVertexWeights = new();
     internal readonly List<IFPRExclusionTask> relatedTasks = new();
     
     internal Transform target => _exclusion.target;

@@ -11,6 +11,7 @@ public class SkinnedTransformHider : ITransformHider
     private static readonly int s_BufferLayout = Shader.PropertyToID("bufferLayout");
     private static readonly int s_WeightedCount = Shader.PropertyToID("weightedCount");
     private static readonly int s_WeightedVertices = Shader.PropertyToID("weightedVertices");
+    private static readonly int s_WeightedWeights = Shader.PropertyToID("weightedWeights");
     private static readonly int s_OriginalPositions = Shader.PropertyToID("originalPositions");
     private static readonly int s_VertexBuffer = Shader.PropertyToID("VertexBuffer");
     
@@ -26,7 +27,7 @@ public class SkinnedTransformHider : ITransformHider
     private readonly List<SubTask> _subTasks = new();
     internal SubTask AddSubTask(FPRExclusionWrapper exclusion)
     {
-        SubTask subTask = new(this, exclusion, exclusion.affectedVertexIndices);
+        SubTask subTask = new(this, exclusion);
         _subTasks.Add(subTask);
         return subTask;
     }
@@ -108,17 +109,25 @@ public class SkinnedTransformHider : ITransformHider
         private readonly Transform _shrinkBone;
         private readonly int _vertexCount;
         private readonly ComputeBuffer _computeBuffer;
+        private readonly ComputeBuffer _weightBuffer;
         private readonly ComputeBuffer _originalPosBuffer;
         private readonly int _threadGroups;
         
-        public SubTask(SkinnedTransformHider parent, FPRExclusionWrapper exclusion, List<int> exclusionVerts)
+        public SubTask(SkinnedTransformHider parent, FPRExclusionWrapper exclusion)
         {
             _parent = parent;
             _shrinkBone = exclusion.target;
         
+            var exclusionVerts = exclusion.affectedVertexIndices;
+            var exclusionWeights = exclusion.affectedVertexWeights;
+            
             _vertexCount = exclusionVerts.Count;
+            
             _computeBuffer = new ComputeBuffer(_vertexCount, sizeof(int));
             _computeBuffer.SetData(exclusionVerts.ToArray());
+            
+            _weightBuffer = new ComputeBuffer(_vertexCount, sizeof(float));
+            _weightBuffer.SetData(exclusionWeights.ToArray());
             
             _originalPosBuffer = new ComputeBuffer(_vertexCount, sizeof(float) * 3);
             
@@ -138,6 +147,7 @@ public class SkinnedTransformHider : ITransformHider
                 TransformHiderUtils.shader.SetInt(s_WeightedCount, _vertexCount);
                 TransformHiderUtils.shader.SetInt(s_BufferLayout, _parent._bufferLayout);
                 TransformHiderUtils.shader.SetBuffer(kernel, s_WeightedVertices, _computeBuffer);
+                TransformHiderUtils.shader.SetBuffer(kernel, s_WeightedWeights, _weightBuffer);
                 TransformHiderUtils.shader.SetBuffer(kernel, s_OriginalPositions, _originalPosBuffer);
                 TransformHiderUtils.shader.SetBuffer(kernel, s_VertexBuffer, _parent._graphicsBuffer);
                 TransformHiderUtils.shader.Dispatch(kernel, _threadGroups, 1, 1);
@@ -152,6 +162,7 @@ public class SkinnedTransformHider : ITransformHider
         public void Dispose()
         {
             _computeBuffer?.Dispose();
+            _weightBuffer?.Dispose();
             _originalPosBuffer?.Dispose();
         }
 
@@ -160,8 +171,8 @@ public class SkinnedTransformHider : ITransformHider
         public static void FindExclusionVertList(SkinnedMeshRenderer renderer, IReadOnlyDictionary<Transform, FPRExclusionWrapper> exclusions)
         {
             // Start the stopwatch
-            // Stopwatch stopwatch = new();
-            // stopwatch.Start();
+            //Stopwatch stopwatch = new();
+            //stopwatch.Start();
 
             var boneWeights = renderer.sharedMesh.boneWeights;
             var bones = renderer.bones;
@@ -170,29 +181,49 @@ public class SkinnedTransformHider : ITransformHider
 
             // Populate the weights array
             for (int i = 0; i < boneCount; i++)
-                if (exclusions.ContainsKey(bones[i]))
+            {
+                Transform bone = bones[i];
+                if (bone == null) continue;
+                if (exclusions.ContainsKey(bone))
                     boneHasExclusion[i] = true;
+            }
 
-            const float minWeightThreshold = 0.2f;
+            // nan'd bones have no consideration for weight
+            const float minWeightThreshold = float.Epsilon;
 
             // Check bone weights and add vertex to exclusion list if needed
             for (int i = 0; i < boneWeights.Length; i++)
             {
                 BoneWeight weight = boneWeights[i];
-                Transform bone;
+                Transform bone = null;
+                float boneWeight = 0f;
 
-                if (boneHasExclusion[weight.boneIndex0] && weight.weight0 > minWeightThreshold)
-                    bone = bones[weight.boneIndex0];
-                else if (boneHasExclusion[weight.boneIndex1] && weight.weight1 > minWeightThreshold)
-                    bone = bones[weight.boneIndex1];
-                else if (boneHasExclusion[weight.boneIndex2] && weight.weight2 > minWeightThreshold)
-                    bone = bones[weight.boneIndex2];
-                else if (boneHasExclusion[weight.boneIndex3] && weight.weight3 > minWeightThreshold)
+                if (boneHasExclusion[weight.boneIndex3] && weight.weight3 > minWeightThreshold)
+                {
+                    boneWeight += weight.weight3;
                     bone = bones[weight.boneIndex3];
-                else continue;
+                }
+                if (boneHasExclusion[weight.boneIndex2] && weight.weight2 > minWeightThreshold)
+                {
+                    boneWeight += weight.weight2;
+                    bone = bones[weight.boneIndex2];
+                }
+                if (boneHasExclusion[weight.boneIndex1] && weight.weight1 > minWeightThreshold)
+                {
+                    boneWeight += weight.weight1;
+                    bone = bones[weight.boneIndex1];
+                }
+                if (boneHasExclusion[weight.boneIndex0] && weight.weight0 > minWeightThreshold)
+                {
+                    boneWeight += weight.weight0;
+                    bone = bones[weight.boneIndex0];
+                }
 
-                if (exclusions.TryGetValue(bone, out FPRExclusionWrapper exclusion))
-                    exclusion.affectedVertexIndices.Add(i);
+                if (bone == null || !exclusions.TryGetValue(bone, out FPRExclusionWrapper exclusion)) 
+                    continue;
+                
+                exclusion.affectedVertexIndices.Add(i);
+                exclusion.affectedVertexWeights.Add(Mathf.Clamp01(boneWeight));
             }
 
             // Stop the stopwatch

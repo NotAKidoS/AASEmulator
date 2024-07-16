@@ -183,6 +183,7 @@ public class TransformHiderManager : MonoBehaviour
                     
                     fprExclusion.relatedTasks.Add(skinnedHider.AddSubTask(fprExclusion));
                     fprExclusion.affectedVertexIndices.Clear(); // clear list for next SkinnedTransformHider
+                    fprExclusion.affectedVertexWeights.Clear(); // clear list for next SkinnedTransformHider
                     fprExclusion.UpdateFPRState(); // set initial state
                 }
                 

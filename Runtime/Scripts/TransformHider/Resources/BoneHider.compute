@@ -9,6 +9,7 @@ RWByteAddressBuffer VertexBuffer;
 int bufferLayout;
 
 StructuredBuffer<int> weightedVertices;
+StructuredBuffer<float> weightedWeights;
 uint weightedCount;
 float3 pos;
 
@@ -17,11 +18,22 @@ RWStructuredBuffer<float3> originalPositions;
 [numthreads(64, 1, 1)]
 void Hider(uint3 id : SV_DispatchThreadID) {
     if (id.x >= weightedCount) return;
-    int index = weightedVertices[id.x];
-    int vidx = index * bufferLayout;
+    const int index = weightedVertices[id.x];
+    const int vidx = index * bufferLayout;
     
-    originalPositions[id.x] = asfloat(VertexBuffer.Load3(vidx<<2));
-    VertexBuffer.Store3(vidx<<2, asuint(pos));
+    //originalPositions[id.x] = asfloat(VertexBuffer.Load3(vidx<<2));
+    //VertexBuffer.Store3(vidx<<2, asuint(pos));
+
+    // get the original position
+    const float3 original_pos = asfloat(VertexBuffer.Load3(vidx<<2));
+    originalPositions[id.x] = original_pos;
+
+    // get the weight for the current vertex
+    const float weight = weightedWeights[id.x];
+    const float3 new_pos = lerp(original_pos, pos, weight);
+
+    // store the new position back into the vertex buffer
+    VertexBuffer.Store3(vidx<<2, asuint(new_pos));
 }
 
 // show original positions
