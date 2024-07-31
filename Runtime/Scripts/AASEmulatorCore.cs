@@ -20,7 +20,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.3";
+        public const string AAS_EMULATOR_VERSION = "0.1.5";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
