@@ -577,10 +577,10 @@ namespace NAK.AASEmulator.Runtime
 
             m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             m_animator.applyRootMotion = false;
-            if (!m_animator.enabled) // only enforced for local client... if in vr...
+            if (!m_animator.enabled)
             {
-                SimpleLogger.LogError("Avatars animator is disabled by default. You must fix this prior to upload.", gameObject);
-                m_animator.enabled = true; // we will enable, but will also alert user
+                SimpleLogger.LogWarning("Avatar's Animator was disabled on initialization. It is recommended to keep the animator enabled prior to upload!", gameObject);
+                m_animator.enabled = true; // client will force enable animator, but we still recommend enabling it to prevent potential issues when binding
             }
             
             if (m_animator.isHuman)
@@ -844,8 +844,7 @@ namespace NAK.AASEmulator.Runtime
             // just gonna check this once
             bool shouldCancelEmote = (AnimatorManager.CancelEmote
                                       || AnimatorManager.MovementX > 0f
-                                      || AnimatorManager.MovementY > 0f
-                                      || !AnimatorManager.Grounded); // TODO: this is fixed next update
+                                      || AnimatorManager.MovementY > 0f);
             
             m_humanPoseHandler?.GetHumanPose(ref m_humanPose);
             foreach (AASEmulatorRemote clone in m_RemoteClones)

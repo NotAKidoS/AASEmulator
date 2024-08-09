@@ -65,6 +65,11 @@ namespace NAK.AASEmulator.Runtime
 
             animator.keepAnimatorStateOnDisable = false;
             animator.applyRootMotion = false;
+            if (!animator.enabled)
+            {
+                SimpleLogger.LogWarning("Avatar's Animator was disabled on initialization. It is recommended to keep the animator enabled prior to upload!", gameObject);
+                animator.enabled = true; // client will force enable animator, but we still recommend enabling it to prevent potential issues when binding
+            }
             
             if (animator.isHuman)
                 _poseHandler = new HumanPoseHandler(AnimatorManager.Animator.avatar, AnimatorManager.Animator.transform);

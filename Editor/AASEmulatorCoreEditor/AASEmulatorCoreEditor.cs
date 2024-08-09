@@ -196,30 +196,41 @@ namespace NAK.AASEmulator.Editor
 
         private void Draw_VersionCheck()
         {
-            EditorGUILayout.LabelField("Version Check", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Current Version: v" + AASEmulatorCore.AAS_EMULATOR_VERSION);
-
-            if (_isAttemptingVersionCheck)
+            // TODO: editor coroutine solution instead of this lol
+            bool canCheckForUpdates = _core.isActiveAndEnabled;
+            if (!canCheckForUpdates)
             {
-                EditorGUILayout.HelpBox("Checking for updates...", MessageType.Info);
-                return;
+                EditorGUILayout.HelpBox("Version check is unavailable because AAS Emulator Core is not active in the scene. Is the GameObject/Component active?", MessageType.Warning);
             }
             
-            if (_hasCheckedForUpdates)
+            using (new EditorGUI.DisabledScope(!canCheckForUpdates))
             {
-                if (_isLatestVersion)
+                EditorGUILayout.LabelField("Version Check", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Current Version: v" + AASEmulatorCore.AAS_EMULATOR_VERSION);
+
+                if (_isAttemptingVersionCheck)
                 {
-                    EditorGUILayout.HelpBox("You are using the latest version of AAS Emulator.", MessageType.Info);
+                    EditorGUILayout.HelpBox("Checking for updates...", MessageType.Info);
+                    return;
                 }
-                else
+
+                if (_hasCheckedForUpdates)
                 {
-                    EditorGUILayout.HelpBox("A new version of AAS Emulator is available.", MessageType.Warning);
-                    if (GUILayout.Button("Open Latest Release Page")) Application.OpenURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL + "/releases/latest");
+                    if (_isLatestVersion)
+                    {
+                        EditorGUILayout.HelpBox("You are using the latest version of AAS Emulator.", MessageType.Info);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox("A new version of AAS Emulator is available.", MessageType.Warning);
+                        if (GUILayout.Button("Open Latest Release Page"))
+                            Application.OpenURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL + "/releases/latest");
+                    }
                 }
-            }
-            else if (GUILayout.Button("Check for Updates"))
-            {
-                CheckForUpdates();
+                else if (GUILayout.Button("Check for Updates"))
+                {
+                    CheckForUpdates();
+                }
             }
         }
         
