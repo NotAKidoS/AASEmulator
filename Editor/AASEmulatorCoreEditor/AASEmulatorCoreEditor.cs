@@ -196,18 +196,18 @@ namespace NAK.AASEmulator.Editor
 
         private void Draw_VersionCheck()
         {
+            EditorGUILayout.LabelField("Version Check", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Current Version: v" + AASEmulatorCore.AAS_EMULATOR_VERSION);
+                
             // TODO: editor coroutine solution instead of this lol
             bool canCheckForUpdates = _core.isActiveAndEnabled;
             if (!canCheckForUpdates)
             {
-                EditorGUILayout.HelpBox("Version check is unavailable because AAS Emulator Core is not active in the scene. Is the GameObject/Component active?", MessageType.Warning);
+                EditorGUILayout.HelpBox("Version check is unavailable because AAS Emulator Core is not active in the scene.\nIs the GameObject/Component active?", MessageType.Warning);
             }
             
             using (new EditorGUI.DisabledScope(!canCheckForUpdates))
             {
-                EditorGUILayout.LabelField("Version Check", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField("Current Version: v" + AASEmulatorCore.AAS_EMULATOR_VERSION);
-
                 if (_isAttemptingVersionCheck)
                 {
                     EditorGUILayout.HelpBox("Checking for updates...", MessageType.Info);
@@ -216,7 +216,11 @@ namespace NAK.AASEmulator.Editor
 
                 if (_hasCheckedForUpdates)
                 {
-                    if (_isLatestVersion)
+                    if (_lastErrorMessage != null)
+                    {
+                        EditorGUILayout.HelpBox(_lastErrorMessage, MessageType.Error);
+                    }
+                    else if (_isLatestVersion)
                     {
                         EditorGUILayout.HelpBox("You are using the latest version of AAS Emulator.", MessageType.Info);
                     }
@@ -243,6 +247,7 @@ namespace NAK.AASEmulator.Editor
         private static bool _isLatestVersion;
         private static bool _isAttemptingVersionCheck;
         private static bool _hasCheckedForUpdates;
+        private static string _lastErrorMessage;
         
         private const string CHECKED_VERSION_THIS_SESSION_KEY = nameof(AASEmulatorCore) + "_CheckedVersionThisSession";
         private const string LATEST_VERSION_KEY = nameof(AASEmulatorCore) + "_LatestVersion";
@@ -271,7 +276,8 @@ namespace NAK.AASEmulator.Editor
 
             if (webRequest.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.ProtocolError)
             {
-                SimpleLogger.LogError("Error fetching latest version from GitHub: " + webRequest.error, _core.gameObject);
+                _lastErrorMessage = "Error fetching latest version from GitHub: " + webRequest.error;
+                SimpleLogger.LogError(_lastErrorMessage, _core.gameObject);
             }
             else
             {
@@ -294,7 +300,7 @@ namespace NAK.AASEmulator.Editor
             
             _versionCheckCoroutine = null;
             _isAttemptingVersionCheck = false;
-            SessionState.SetBool(CHECKED_VERSION_THIS_SESSION_KEY, true);
+            SessionState.SetBool(CHECKED_VERSION_THIS_SESSION_KEY, webRequest.result == UnityWebRequest.Result.Success);
             SessionState.SetBool(LATEST_VERSION_KEY, _isLatestVersion);
         }
 
