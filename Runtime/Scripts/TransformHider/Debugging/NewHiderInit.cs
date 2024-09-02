@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿#if CVR_CCK_EXISTS
+using UnityEngine;
 
-namespace Experiment.NewHider.Debugging
+namespace NAK.AASEmulator.Runtime.Debugging
 {
+    [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
     public class NewHiderInit : MonoBehaviour
     {
         private void Start()
@@ -10,3 +12,4 @@ namespace Experiment.NewHider.Debugging
         }
     }
 }
+#endif

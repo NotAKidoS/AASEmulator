@@ -1,11 +1,16 @@
-﻿using System;
+﻿#if CVR_CCK_EXISTS
+using System;
 
-public interface ITransformHider : IDisposable
+namespace NAK.AASEmulator.Runtime
 {
-    bool IsActive { get; }
-    bool IsValid { get; }
-    bool IsHidden { get; }
-    
-    void HideTransform();
-    void ShowTransform();
+    public interface ITransformHider : IDisposable
+    {
+        bool IsActive { get; }
+        bool IsValid { get; }
+        bool IsHidden { get; }
+        
+        void HideTransform();
+        void ShowTransform();
+    }
 }
+#endif

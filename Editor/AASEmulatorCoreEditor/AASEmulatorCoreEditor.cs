@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
+using System;
 using System.Collections;
 using NAK.AASEmulator.Runtime;
 using UnityEditor;
@@ -307,3 +308,4 @@ namespace NAK.AASEmulator.Editor
         #endregion Version Check Implementation
     }
 }
+#endif

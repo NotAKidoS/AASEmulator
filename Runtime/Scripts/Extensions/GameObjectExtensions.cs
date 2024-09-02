@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if CVR_CCK_EXISTS
+using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime.Extensions
 {
@@ -17,3 +18,4 @@ namespace NAK.AASEmulator.Runtime.Extensions
         }
     }
 }
+#endif

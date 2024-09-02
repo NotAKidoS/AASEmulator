@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Editor
@@ -101,3 +102,4 @@ namespace NAK.AASEmulator.Editor
         #endregion
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if CVR_CCK_EXISTS
+using System.Collections.Generic;
 using ABI.CCK.Components;
 using NAK.AASEmulator.Runtime;
 using UnityEngine;
@@ -72,3 +73,4 @@ public interface IFPRExclusionTask
     public bool IsActive { get; set; }
     public bool ShrinkToZero { get; set; }
 }
+#endif

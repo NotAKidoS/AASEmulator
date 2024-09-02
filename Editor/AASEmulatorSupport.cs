@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
+using System.Linq;
 using NAK.AASEmulator.Runtime;
 using NAK.AASEmulator.Runtime.Extensions;
 using UnityEditor;
@@ -77,3 +78,4 @@ namespace NAK.AASEmulator.Support
         // }
     }
 }
+#endif

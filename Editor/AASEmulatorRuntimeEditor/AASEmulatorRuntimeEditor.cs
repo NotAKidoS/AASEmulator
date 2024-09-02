@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
+using System;
 using NAK.AASEmulator.Runtime;
 using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEditor;
@@ -446,3 +447,4 @@ namespace NAK.AASEmulator.Editor
         #endregion Drawing Methods
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
+using System.Globalization;
 using NAK.AASEmulator.Runtime;
 using UnityEditor;
 using static NAK.AASEmulator.Editor.EditorExtensions;
@@ -148,3 +149,4 @@ namespace NAK.AASEmulator.Editor
         #endregion Drawing Methods
     }
 }
+#endif

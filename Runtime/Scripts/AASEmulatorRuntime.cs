@@ -3,7 +3,6 @@ using ABI.CCK.Components;
 using NAK.AASEmulator.Runtime.SubSystems;
 using System;
 using System.Collections.Generic;
-using Experiment.NewHider;
 using NAK.AASEmulator.Runtime.Extensions;
 using UnityEngine;
 
