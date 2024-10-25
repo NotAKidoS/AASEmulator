@@ -2,6 +2,7 @@
 using System;
 using ABI.CCK.Components;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NAK.AASEmulator.Runtime.Extensions;
 using NAK.AASEmulator.Runtime.SubSystems;
@@ -20,7 +21,7 @@ namespace NAK.AASEmulator.Runtime
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.1.8";
+        public const string AAS_EMULATOR_VERSION = "0.1.9";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -34,17 +35,16 @@ namespace NAK.AASEmulator.Runtime
         #endregion Constants
         
         #region Support Delegates
+        
+        //public static Action<AASEmulatorCore> OnCoreInitialized;
 
         public delegate void AddTopComponent(Component component);
-
         public static AddTopComponent addTopComponentDelegate;
 
         public delegate void RuntimeInitialized(AASEmulatorRuntime runtime);
-
         public static RuntimeInitialized runtimeInitializedDelegate;
         
         public delegate void RemoteInitialized(AASEmulatorRemote remote);
-        
         public static RemoteInitialized remoteInitializedDelegate;
         
         // public delegate void RuntimeCreated(AASEmulatorRuntime runtime);
@@ -77,6 +77,8 @@ namespace NAK.AASEmulator.Runtime
         public RuntimeAnimatorController defaultRuntimeController;
         private const string CONTROLLER_GUID = "ff926e022d914b84e8975ba6188a26f0";
         private const string CONTROLLER_PATH = "Assets/ABI.CCK/Animations/AvatarAnimator.controller";
+
+        public string ClientInstallPath;
         
         #endregion Settings / Emulator Config
 
@@ -138,11 +140,18 @@ namespace NAK.AASEmulator.Runtime
         
         #region Unity Methods
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
+            // Attempts to use custom client install path if set, otherwise tries to find the game install path
+            ClientInstallPath = UnityEditor.EditorPrefs.GetString("AASEmu-ClientInstallPath", string.Empty);
+            if (!IsGameInstallPathValid(ClientInstallPath)) ClientInstallPath = string.Empty;
+            if (string.IsNullOrEmpty(ClientInstallPath)) ClientInstallPath = TryFindGameInstallPath();
+            
             if (defaultRuntimeController == null)
                 LoadDefaultCCKController();
         }
+#endif
 
         private void Start()
         {
@@ -353,6 +362,68 @@ namespace NAK.AASEmulator.Runtime
         }
 
         #endregion Game Events
+
+        #region Game Utilities
+        
+        private const string DEEP_LINK_REGISTRY_PATH = @"ChilloutVR\shell\open\command";
+        
+        /// <summary>
+        /// Retrieves the game installation path by reading the DeepLinkTools.exe path from the registry.
+        /// </summary>
+        /// <returns>The game installation path, or null if not found.</returns>
+        private static string TryFindGameInstallPath()
+        {
+            if (!string.IsNullOrEmpty(_gameInstallPath)) return _gameInstallPath;
+            
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            try
+            {
+                using Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(DEEP_LINK_REGISTRY_PATH);
+                object value = key?.GetValue(null);
+                if (value != null)
+                {
+                    string command = value.ToString();
+                    int firstQuote = command.IndexOf('\"');
+                    int secondQuote = command.IndexOf('\"', firstQuote + 1);
+                    if (firstQuote >= 0 && secondQuote > firstQuote)
+                    {
+                        string deepLinkToolsPath = command.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+                        if (File.Exists(deepLinkToolsPath))
+                        {
+                            _gameInstallPath = Path.GetDirectoryName(deepLinkToolsPath);
+                            return _gameInstallPath;
+                        }
+
+                        SimpleLogger.LogWarning("DeepLinkTools.exe not found at expected path.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SimpleLogger.LogError("Error retrieving game install path: " + e.Message);
+            }
+            
+            SimpleLogger.LogError("Deep Link Tools is not installed. Please install it in-game in the Implementation settings menu.");
+            return null;
+#else
+            SimpleLogger.Log("Unable to retrieve game install path on non-Windows platforms. Please set the Client Install Path manually within AAS Emulator Control.");
+            return null;
+#endif
+        }
+        private static string _gameInstallPath;
+        
+        /// <summary>
+        /// Validates the game installation path and checks if ChilloutVR.exe exists.
+        /// </summary>
+        /// <returns>True if the game installation path is valid and ChilloutVR.exe exists.</returns>
+        private static bool IsGameInstallPathValid(string gameInstallPath)
+        {
+            if (string.IsNullOrEmpty(gameInstallPath)) return false;
+            string chilloutPath = Path.Combine(gameInstallPath, "ChilloutVR.exe");
+            return File.Exists(chilloutPath);
+        }
+        
+        #endregion Game Utilities
     }
 }
 #endif

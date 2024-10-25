@@ -23,6 +23,7 @@ namespace NAK.AASEmulator.Editor
         private SerializedProperty m_emulateAASMenu;
         private SerializedProperty m_emulateShaderGlobals;
         private SerializedProperty m_defaultRuntimeController;
+        private SerializedProperty m_clientInstallPath;
         
         private SerializedProperty m_emulateEyeBlink;
         private SerializedProperty m_emulateEyeLook;
@@ -58,6 +59,7 @@ namespace NAK.AASEmulator.Editor
             m_emulateAASMenu = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAASMenu));
             m_emulateShaderGlobals = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateShaderGlobals));
             m_defaultRuntimeController = serializedObject.FindProperty(nameof(AASEmulatorCore.defaultRuntimeController));
+            m_clientInstallPath = serializedObject.FindProperty(nameof(AASEmulatorCore.ClientInstallPath));
             
             m_emulateEyeBlink = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateEyeBlink));
             m_emulateEyeLook = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateEyeLook));
@@ -116,6 +118,16 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.PropertyField(m_emulateAASMenu);
             EditorGUILayout.PropertyField(m_emulateShaderGlobals);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
+            
+            EditorGUILayout.LabelField("Client Install Path", EditorStyles.boldLabel);
+            
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(m_clientInstallPath, GUIContent.none);
+            if (GUILayout.Button("Reset", GUILayout.Width(60))) m_clientInstallPath.stringValue = null;
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.HelpBox("The client install path is used for AAS Profile management and is auto-detected if Deep Link Tools is installed. " +
+                                    "The path must contain the ChilloutVR executable to be considered valid.", MessageType.Info);
         }
 
         private void Draw_Emulator_AvatarSim()

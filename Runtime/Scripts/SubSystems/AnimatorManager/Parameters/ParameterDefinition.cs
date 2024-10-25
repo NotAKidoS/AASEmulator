@@ -17,6 +17,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         public bool IsCoreParameter { get; }
         public bool IsReadOnly => isControlledByCurve || IsCoreParameter;
         public bool IsSynced => !isLocal && !IsReadOnly;
+        public bool CanSaveToProfile => !IsCoreParameter && !IsReadOnly;
 
         private float _value; // cvr syncs full 32 bits :3
 

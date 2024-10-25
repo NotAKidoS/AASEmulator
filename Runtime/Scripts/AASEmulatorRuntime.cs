@@ -60,6 +60,8 @@ namespace NAK.AASEmulator.Runtime
             => m_avatar is { avatarUsesAdvancedSettings: true };
         
         public bool IsActiveOffset { get; private set; }
+        
+        public string AvatarGuid => TryGetComponent(out CVRAssetInfo assetInfo) ? assetInfo.objectId : string.Empty;
 
         #endregion Public Properties
 

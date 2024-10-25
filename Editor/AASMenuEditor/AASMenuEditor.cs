@@ -1,11 +1,11 @@
 ﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
 using System;
 using NAK.AASEmulator.Runtime;
+using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEditor;
 using UnityEngine;
 using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
 using static NAK.AASEmulator.Runtime.AASEmulatorRuntime;
-using static NAK.AASEmulator.Runtime.AASMenu;
 
 namespace NAK.AASEmulator.Editor
 {
@@ -16,6 +16,8 @@ namespace NAK.AASEmulator.Editor
 
         private AASMenu _menu;
         private Vector2 _scrollPosition;
+        private bool showCreateProfileField;
+        private string newProfileName = "";
 
         #endregion Private Variables
 
@@ -27,7 +29,6 @@ namespace NAK.AASEmulator.Editor
             OnRequestRepaint += Repaint;
             _menu = (AASMenu)target;
         }
-        private void OnDisable() => OnRequestRepaint -= Repaint;
 
         public override void OnInspectorGUI()
         {
@@ -36,6 +37,7 @@ namespace NAK.AASEmulator.Editor
 
             Draw_ScriptWarning();
 
+            Draw_AASProfiles();
             Draw_AASMenus();
         }
 
@@ -52,6 +54,105 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.HelpBox("This script will automatically be added if you enable AASEmulator from the Tools menu (Tools > Enable AAS Emulator).", MessageType.Info);
         }
 
+        private void Draw_AASProfiles()
+        {
+            _menu.aasProfilesFoldout = EditorGUILayout.Foldout(_menu.aasProfilesFoldout, "AAS Profiles", true);
+            if (!_menu.aasProfilesFoldout)
+                return;
+
+            GUILayout.BeginVertical("box");
+
+            // Use In-Game Profiles Toggle
+            bool newUseInGameProfiles = EditorGUILayout.Toggle("Use In-Game Profiles", AvatarProfileManager.UseClientProfiles);
+            if (newUseInGameProfiles != AvatarProfileManager.UseClientProfiles)
+            {
+                if (EditorUtility.DisplayDialog("Switch Profile Source", 
+                        "Switching profile source will reload the default profile. Continue?", 
+                        "Yes", "No"))
+                {
+                    AvatarProfileManager.UseClientProfiles = newUseInGameProfiles;
+                    _menu.profilesManager.SetupManager();
+                }
+            }
+
+            var profilesManager = _menu.profilesManager;
+
+            if (profilesManager.ProfileNames.Count > 0)
+            {
+                int selectedIndex = profilesManager.ProfileNames.IndexOf(profilesManager.SelectedProfileName);
+                if (selectedIndex < 0)
+                    selectedIndex = 0;
+
+                int newSelectedIndex = EditorGUILayout.Popup("Selected Profile", selectedIndex, profilesManager.ProfileNames.ToArray());
+                if (newSelectedIndex != selectedIndex) profilesManager.LoadProfile(profilesManager.ProfileNames[newSelectedIndex]);
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Save Profile"))
+                {
+                    if (EditorUtility.DisplayDialog("Save Profile", 
+                            $"Are you sure you want to save profile '{profilesManager.SelectedProfileName}'?", 
+                            "Yes", "No"))
+                        profilesManager.SaveProfile(profilesManager.SelectedProfileName);
+                }
+
+                if (GUILayout.Button("Delete Profile"))
+                {
+                    if (EditorUtility.DisplayDialog("Delete Profile", 
+                            $"Are you sure you want to delete profile '{profilesManager.SelectedProfileName}'?", 
+                            "Yes", "No"))
+                        profilesManager.DeleteProfile(profilesManager.SelectedProfileName);
+                }
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                EditorGUILayout.LabelField("No profiles available.");
+            }
+
+            if (showCreateProfileField)
+            {
+                newProfileName = EditorGUILayout.TextField("Profile Name", newProfileName);
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create"))
+                {
+                    if (string.IsNullOrEmpty(newProfileName))
+                    {
+                        EditorUtility.DisplayDialog("Error", "Profile name cannot be empty.", "OK");
+                    }
+                    else
+                    {
+                        if (profilesManager.Profiles.ContainsKey(newProfileName))
+                        {
+                            EditorUtility.DisplayDialog("Error", $"Profile '{newProfileName}' already exists.", "OK");
+                        }
+                        else
+                        {
+                            profilesManager.CreateProfile(newProfileName);
+                            showCreateProfileField = false;
+                            newProfileName = "";
+                        }
+                    }
+                }
+                if (GUILayout.Button("Cancel"))
+                {
+                    showCreateProfileField = false;
+                    newProfileName = "";
+                }
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                if (GUILayout.Button("Create New Profile"))
+                {
+                    showCreateProfileField = true;
+                    newProfileName = "";
+                }
+            }
+
+            GUILayout.EndVertical();
+        }
+
         private void Draw_AASMenus()
         {
             int entriesCount = _menu.entries.Count;
@@ -60,25 +161,25 @@ namespace NAK.AASEmulator.Editor
                 EditorGUILayout.HelpBox("No menu entries found for this avatar.", MessageType.Info);
                 return;
             }
-            
+
             int height = Mathf.Min(entriesCount * 100, 600);
-            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, 
+            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition,
                 false, false, GUILayout.Height(height));
-            
-            foreach (AASMenuEntry t in _menu.entries)
+
+            foreach (AASMenu.AASMenuEntry t in _menu.entries)
                 DisplayMenuEntry(t);
-            
+
             EditorGUILayout.EndScrollView();
         }
-        
-        private void DisplayMenuEntry(AASMenuEntry entry)
+
+        private void DisplayMenuEntry(AASMenu.AASMenuEntry entry)
         {
             GUILayout.BeginVertical("box");
 
             EditorGUILayout.LabelField("Menu Name", entry.menuName);
             EditorGUILayout.LabelField("Machine Name", entry.machineName);
             EditorGUILayout.LabelField("Settings Type", entry.settingType.ToString());
-            
+
             switch (entry.settingType)
             {
                 case SettingsType.Dropdown:
@@ -131,12 +232,6 @@ namespace NAK.AASEmulator.Editor
                         _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-y", entry.valueY = newVector3Value.y);
                         _menu.AnimatorManager.Parameters.SetParameter(entry.machineName + "-z", entry.valueZ = newVector3Value.z);
                     }
-                    break;
-                // TODO: AAAAAAAAAAAA
-                case SettingsType.Color:
-                case SettingsType.Joystick2D:
-                case SettingsType.Joystick3D:
-                default:
                     break;
             }
 
