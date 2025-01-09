@@ -36,15 +36,15 @@ namespace NAK.AASEmulator.Runtime
 
         #region EditorGUI
 
-        public bool aasProfilesFoldout = true;
+        public bool aasProfilesFoldout;
 
         #endregion EditorGUI
 
         #region Variables
 
         public readonly List<AASMenuEntry> entries = new();
+        public AASEmulatorRuntime runtime { get; private set; }
         public AvatarAnimator AnimatorManager => runtime.AnimatorManager;
-        private AASEmulatorRuntime runtime;
         public AvatarProfileManager profilesManager;
 
         #endregion Variables

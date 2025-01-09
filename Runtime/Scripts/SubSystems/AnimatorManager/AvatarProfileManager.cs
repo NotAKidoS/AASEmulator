@@ -37,7 +37,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
         /// Whether to use client profiles or not. If true, will load & save profiles to the client profiles folder if provided.
         /// If false, the profiles will be saved to project root (default). Basically just option to set a custom folder path.
         /// </summary>
-        public static bool UseClientProfiles
+        public bool UseClientProfiles
         {
 #if UNITY_EDITOR // TODO: this is hack
             get => UnityEditor.EditorPrefs.GetBool("AASEmu-UseClientProfiles", false);
@@ -54,6 +54,7 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             }
 #endif
         }
+        private bool _useClientProfiles;
         
         public string SelectedProfileName { get; private set; }
         public List<string> ProfileNames { get; } = new();

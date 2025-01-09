@@ -11,6 +11,8 @@ namespace NAK.AASEmulator.Support
     [InitializeOnLoad]
     public static class AASEmulatorSupport
     {
+        private const string AAS_EMULATOR_CONTROL_NAME = "AAS Emulator Control";
+        
         static AASEmulatorSupport()
         {
             Initialize();
@@ -18,6 +20,7 @@ namespace NAK.AASEmulator.Support
         
         private static void Initialize()
         {
+            //AASEmulatorCore.OnCoreInitialized -= MoveComponentToTop;
             AASEmulatorCore.addTopComponentDelegate -= MoveComponentToTop;
             AASEmulatorCore.addTopComponentDelegate += MoveComponentToTop;
         }
@@ -48,17 +51,15 @@ namespace NAK.AASEmulator.Support
         [MenuItem("Tools/Enable AAS Emulator")]
         public static void EnableAASTesting()
         {
-            const string AAS_EMULATOR_CONTROL_NAME = "AAS Emulator Control";
-            
-            AASEmulatorCore control = AASEmulatorCore.Instance; // check for existing instance
+            AASEmulatorCore control = AASEmulatorCore.Instance;
             if (control == null)
             {
                 GameObject foundSceneControl = SceneManager.GetActiveScene()
                     .GetRootGameObjects()
                     .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
-                    .FirstOrDefault(t => t.name == AAS_EMULATOR_CONTROL_NAME)?.gameObject; // check for existing object
+                    .FirstOrDefault(t => t.name == AAS_EMULATOR_CONTROL_NAME)?.gameObject;
 
-                control = foundSceneControl == null // create new object if not found, or use existing object and add component
+                control = foundSceneControl == null
                     ? new GameObject(AAS_EMULATOR_CONTROL_NAME).AddComponent<AASEmulatorCore>() 
                     : foundSceneControl.AddComponentIfMissing<AASEmulatorCore>();
             }

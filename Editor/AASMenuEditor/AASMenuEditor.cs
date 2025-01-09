@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR && CVR_CCK_EXISTS
 using System;
 using NAK.AASEmulator.Runtime;
-using NAK.AASEmulator.Runtime.SubSystems;
 using UnityEditor;
 using UnityEngine;
 using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
@@ -60,17 +59,23 @@ namespace NAK.AASEmulator.Editor
             if (!_menu.aasProfilesFoldout)
                 return;
 
+            bool avatarUsesAAS = _menu.runtime.IsUsingAvatarAdvancedSettings;
+            if (!avatarUsesAAS) EditorGUILayout.HelpBox("This avatar does not use Avatar Advanced Settings! " +
+                                                        "Profiles will not be loaded.", MessageType.Info);
+            
+            EditorGUI.BeginDisabledGroup(!avatarUsesAAS);
+
             GUILayout.BeginVertical("box");
 
             // Use In-Game Profiles Toggle
-            bool newUseInGameProfiles = EditorGUILayout.Toggle("Use In-Game Profiles", AvatarProfileManager.UseClientProfiles);
-            if (newUseInGameProfiles != AvatarProfileManager.UseClientProfiles)
+            bool newUseInGameProfiles = EditorGUILayout.Toggle("Use In-Game Profiles", _menu.profilesManager.UseClientProfiles);
+            if (newUseInGameProfiles != _menu.profilesManager.UseClientProfiles)
             {
                 if (EditorUtility.DisplayDialog("Switch Profile Source", 
                         "Switching profile source will reload the default profile. Continue?", 
                         "Yes", "No"))
                 {
-                    AvatarProfileManager.UseClientProfiles = newUseInGameProfiles;
+                    _menu.profilesManager.UseClientProfiles = newUseInGameProfiles;
                     _menu.profilesManager.SetupManager();
                 }
             }
@@ -151,6 +156,8 @@ namespace NAK.AASEmulator.Editor
             }
 
             GUILayout.EndVertical();
+            
+            EditorGUI.EndDisabledGroup();
         }
 
         private void Draw_AASMenus()
