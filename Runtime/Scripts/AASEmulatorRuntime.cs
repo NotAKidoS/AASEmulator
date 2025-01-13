@@ -4,14 +4,22 @@ using NAK.AASEmulator.Runtime.SubSystems;
 using System;
 using System.Collections.Generic;
 using NAK.AASEmulator.Runtime.Extensions;
+using NAK.AASEmulator.Runtime.Wrappers;
 using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
 {
     [AddComponentMenu("")]
     [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
-    public class AASEmulatorRuntime : EditorOnlyMonoBehaviour
+    public class AASEmulatorRuntime : EditorOnlyMonoBehaviour, IAASEmulatorAvatar
     {
+        #region IAASEmulatorAvatar
+        
+        public bool IsLocal => true;
+        public int GetRuntimeHash() => GetHashCode();
+        
+        #endregion IAASEmulatorAvatar
+        
         #region EditorGUI
 
         public delegate void RepaintRequestHandler();
@@ -523,6 +531,13 @@ namespace NAK.AASEmulator.Runtime
             
             // Create clone of avatar prior to anything initializing so we can use it later
             m_SourceClone = AASEmulatorCore.Instance.InstantiateClone(gameObject);
+            
+            // Add wrappers
+            var pointers = GetComponentsInChildren<CVRPointer>(true);
+            foreach (CVRPointer pointer in pointers) pointer.gameObject.AddComponent<CVRPointerWrapper>();
+            
+            var triggers = GetComponentsInChildren<CVRAdvancedAvatarSettingsTrigger>(true);
+            foreach (CVRAdvancedAvatarSettingsTrigger trigger in triggers) trigger.gameObject.AddComponent<CVRAvatarTriggerWrapper>();
         }
         
         private void Start()

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
     public class TransformHiderManager : MonoBehaviour
     {

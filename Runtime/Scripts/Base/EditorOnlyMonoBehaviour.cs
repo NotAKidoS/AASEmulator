@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace NAK.AASEmulator.Runtime
 {
-    [AddComponentMenu("")] // Hide from Inspector search
+    [AddComponentMenu("/")] // Hide from Inspector search
     public class EditorOnlyMonoBehaviour : MonoBehaviour
     {
         [HideInInspector]

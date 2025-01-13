@@ -8,8 +8,15 @@ namespace NAK.AASEmulator.Runtime
 {
     [AddComponentMenu("")]
     [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
-    public class AASEmulatorRemote : EditorOnlyMonoBehaviour
+    public class AASEmulatorRemote : EditorOnlyMonoBehaviour, IAASEmulatorAvatar
     {
+        #region IAASEmulatorAvatar
+        
+        public bool IsLocal => false;
+        public int GetRuntimeHash() => GetHashCode();
+        
+        #endregion IAASEmulatorAvatar
+        
         #region Public Properties
         
         public bool UseEyeMovement
@@ -179,6 +186,21 @@ namespace NAK.AASEmulator.Runtime
         }
 
         #endregion Net IK Handling
+    }
+    
+    // TODO: This needs to be reworked
+    public interface IAASEmulatorAvatar
+    {
+        bool UseEyeMovement { get; }
+        bool UseBlinkBlendshapes { get; }
+        bool UseLipsync { get; }
+        bool IsEmotePlaying { get; }
+        
+        bool IsLocal { get; }
+        
+        AvatarAnimator AnimatorManager { get; }
+        
+        int GetRuntimeHash();
     }
 }
 #endif

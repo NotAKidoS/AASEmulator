@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using NAK.AASEmulator.Runtime.Extensions;
 using NAK.AASEmulator.Runtime.SubSystems;
+using NAK.AASEmulator.Runtime.Wrappers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting.APIUpdating;
@@ -15,13 +16,13 @@ using Object = UnityEngine.Object;
 namespace NAK.AASEmulator.Runtime
 {
     [MovedFrom(autoUpdateAPI: false, sourceClassName: "AASEmulator")]
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [HelpURL(AAS_EMULATOR_GIT_URL)]
     public class AASEmulatorCore : MonoBehaviour
     {
         #region Constants
         
-        public const string AAS_EMULATOR_VERSION = "0.2.0";
+        public const string AAS_EMULATOR_VERSION = "0.2.1";
         
         // AAS Emulator Links
         public const string AAS_EMULATOR_GIT_URL = "https://github.com/NotAKidOnSteam/AASEmulator";
@@ -193,6 +194,7 @@ namespace NAK.AASEmulator.Runtime
         public GameObject InstantiateClone(GameObject original)
         {
             GameObject clone = Instantiate(original, m_CloneInstantiationTarget.transform);
+            
             clone.SetActive(true);
             clone.SetLayersOfChildren(10); // PlayerNetwork layer
             // NOTE: Triggers & Pointers can detect this layer shift on avatar load if they are not on the target layer already

@@ -7,7 +7,7 @@ using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
 
 namespace NAK.AASEmulator.Runtime
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
     public class AASMenu : EditorOnlyMonoBehaviour
     {

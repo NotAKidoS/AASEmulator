@@ -30,6 +30,7 @@ public class FPRExclusionWrapperEditor : Editor
 /// Manual exclusion component for the TransformHider (FPR) system.
 /// Allows you to manually hide and show a transform that would otherwise be hidden.
 /// </summary>
+[AddComponentMenu("/")]
 public class FPRExclusionWrapper : EditorOnlyMonoBehaviour
 {
     internal readonly List<int> affectedVertexIndices = new();

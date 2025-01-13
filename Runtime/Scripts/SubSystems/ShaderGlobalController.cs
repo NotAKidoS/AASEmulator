@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace NAK.AASEmulator.Runtime.SubSystems
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [HelpURL(AASEmulatorCore.AAS_EMULATOR_GIT_URL)]
     public class ShaderGlobalController : EditorOnlyMonoBehaviour
     {
