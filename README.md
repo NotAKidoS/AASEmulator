@@ -16,6 +16,7 @@ It is mostly fluff. What you see is what you get:
 - Simulated Avatar Advanced Tagging.
 - Simulated AAS Syncing & Net IK to Remote Avatar.
 - Simulated FPRExclusions.
+- Simulated Avatar Triggers & Pointers.
 - Mirror Reflection visual in world space.
 
 ## Have any Questions about Avatar Creation?
