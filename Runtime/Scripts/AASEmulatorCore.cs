@@ -30,8 +30,8 @@ namespace NAK.AASEmulator.Runtime
         public const string AAS_EMULATOR_COMMON_FAQ_URL = "https://github.com/NotAKidOnSteam/AASEmulator/wiki/Common-Creator-FAQ";
         
         // Official Links
-        public const string ABI_CCK_DOCUMENTATION_URL = "https://documentation.abinteractive.net/cck/";
-        public const string ABI_HUB_URL = "https://hub.abinteractive.net/";
+        public const string CVR_CCK_DOCUMENTATION_URL = "https://docs.chilloutvr.net/cck/";
+        public const string CVR_HUB_URL = "https://hub.chilloutvr.net/";
         
         #endregion Constants
         

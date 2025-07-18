@@ -203,8 +203,8 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.Space();
             
             EditorGUILayout.LabelField("Links / Official", EditorStyles.boldLabel);
-            if (GUILayout.Button("CCK Documentation")) Application.OpenURL(AASEmulatorCore.ABI_CCK_DOCUMENTATION_URL);
-            if (GUILayout.Button("Alpha Blend Interactive Hub")) Application.OpenURL(AASEmulatorCore.ABI_HUB_URL);
+            if (GUILayout.Button("CCK Documentation")) Application.OpenURL(AASEmulatorCore.CVR_CCK_DOCUMENTATION_URL);
+            if (GUILayout.Button("ChilloutVR Hub")) Application.OpenURL(AASEmulatorCore.CVR_HUB_URL);
         }
 
         private void Draw_VersionCheck()
