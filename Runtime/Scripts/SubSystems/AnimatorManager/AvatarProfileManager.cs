@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Abi.Newtonsoft.Json;
+using CVR.Newtonsoft.Json;
 using UnityEngine.Device;
 using static ABI.CCK.Scripts.CVRAdvancedSettingsEntry;
 
