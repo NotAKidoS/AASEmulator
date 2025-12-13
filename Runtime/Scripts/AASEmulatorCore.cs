@@ -308,6 +308,8 @@ namespace NAK.AASEmulator.Runtime
 
         private void UpdateGlobalLookAtPosition()
         {
+            if (!Application.isFocused) return; // only work if game tab focused
+            
             Camera foundCamera = Camera.main; // default to main camera
             if (foundCamera == null)
                 return;
