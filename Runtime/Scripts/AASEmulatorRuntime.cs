@@ -252,7 +252,9 @@ namespace NAK.AASEmulator.Runtime
             set
             {
                 _gestureLeftIdx = value;
-                _gestureLeft = (float)value - 1;
+                _gestureLeft = (float)value - 1f;
+                // Push it to the animator.
+                AnimatorManager.GestureLeftIdx = (int)_gestureLeftIdx - 1;
             }
         }
 
@@ -262,13 +264,26 @@ namespace NAK.AASEmulator.Runtime
             set
             {
                 _gestureLeft = value;
-                if (_gestureLeft is > 0 and <= 1)
-                {
-                    _gestureLeftIdx = AvatarDefinitions.GestureIndex.Fist;
-                    return;
-                }
 
-                _gestureLeftIdx = (AvatarDefinitions.GestureIndex)Mathf.FloorToInt(value + 1);
+                
+                // Accurate to game using Round-To-Even instead of FloorToInt.
+                int roundedIdx = (int)Math.Round(value, MidpointRounding.ToEven);
+                _gestureLeftIdx = (AvatarDefinitions.GestureIndex)roundedIdx + 1;
+
+                // Push to the Animator.
+                AnimatorManager.GestureLeft = (value);
+                AnimatorManager.GestureLeftIdx = roundedIdx;
+
+                // Shitty implementation of slider snapping below, but it works.
+                // If setting disabled, skip snapping.
+                if (!AASEmulatorCore.Instance.SnapGestureSliders) return;
+                
+                // Exclude snapping between 0.0 and 1.0.
+                if (_gestureLeft is >= 0 and <= 1) return;
+                
+                // Does the snapping based on previously calculated Round-To-Even.
+                _gestureLeft = (float)roundedIdx;
+                
             }
         }
 
@@ -278,7 +293,9 @@ namespace NAK.AASEmulator.Runtime
             set
             {
                 _gestureRightIdx = value;
-                _gestureRight = (float)value - 1;
+                _gestureRight = (float)value - 1f;
+                // Push it to the animator.
+                AnimatorManager.GestureRightIdx = (int)_gestureRightIdx - 1;
             }
         }
 
@@ -288,13 +305,25 @@ namespace NAK.AASEmulator.Runtime
             set
             {
                 _gestureRight = value;
-                if (_gestureRight is > 0 and <= 1)
-                {
-                    _gestureRightIdx = AvatarDefinitions.GestureIndex.Fist;
-                    return;
-                }
 
-                _gestureRightIdx = (AvatarDefinitions.GestureIndex)Mathf.FloorToInt(value + 1);
+                
+                // Accurate to game using Round-To-Even instead of FloorToInt.
+                int roundedIdx = (int)Math.Round(value, MidpointRounding.ToEven);
+                _gestureRightIdx = (AvatarDefinitions.GestureIndex)roundedIdx + 1;
+
+                // Push to the Animator.
+                AnimatorManager.GestureRight = (value);
+                AnimatorManager.GestureRightIdx = roundedIdx;
+
+                // Shitty implementation of slider snapping below, but it works.
+                // If snapping disabled, skip snapping.
+                if (!AASEmulatorCore.Instance.SnapGestureSliders) return;
+                
+                // Exclude snapping between 0.0 and 1.0.
+                if (_gestureRight is >= 0 and <= 1) return;
+                
+                // Does the snapping based on previously calculated Round-To-Even.
+                _gestureRight = (float)roundedIdx;
             }
         }
 

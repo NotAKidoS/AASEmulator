@@ -71,6 +71,9 @@ namespace NAK.AASEmulator.Runtime
         [Tooltip("Emulate the AAS Menu on all avatars. This will add the AASMenu component to all avatars in the scene.")]
         public bool EmulateAASMenu = true;
         
+        [Tooltip("Snaps the slider to values that are expected when emulating")]
+        public bool SnapGestureSliders = true;
+        
         [Tooltip("Emulate the Shader Globals provided by ChilloutVR.")]
         public bool EmulateShaderGlobals;
 
@@ -305,6 +308,8 @@ namespace NAK.AASEmulator.Runtime
 
         private void UpdateGlobalLookAtPosition()
         {
+            if (!Application.isFocused) return; // only work if game tab focused
+            
             Camera foundCamera = Camera.main; // default to main camera
             if (foundCamera == null)
                 return;

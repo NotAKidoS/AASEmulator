@@ -274,6 +274,8 @@ namespace NAK.AASEmulator.Runtime.SubSystems
 
         private void Handle_EyeLook()
         {
+            if (!Application.isFocused) return; // only work if game tab focused
+            
             if (m_avatar == null 
                 || m_avatar.eyeMovementInfo.type == CVRAvatar.CVRAvatarEyeLookMode.None)
                 return;

@@ -21,6 +21,7 @@ namespace NAK.AASEmulator.Editor
         
         private SerializedProperty m_onlyInitializeOnSelect;
         private SerializedProperty m_emulateAASMenu;
+        private SerializedProperty m_snapGestureSliders;
         private SerializedProperty m_emulateShaderGlobals;
         private SerializedProperty m_defaultRuntimeController;
         private SerializedProperty m_clientInstallPath;
@@ -57,6 +58,7 @@ namespace NAK.AASEmulator.Editor
             // serialized properties
             m_onlyInitializeOnSelect = serializedObject.FindProperty(nameof(AASEmulatorCore.OnlyInitializeOnSelect));
             m_emulateAASMenu = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateAASMenu));
+            m_snapGestureSliders = serializedObject.FindProperty(nameof(AASEmulatorCore.SnapGestureSliders));
             m_emulateShaderGlobals = serializedObject.FindProperty(nameof(AASEmulatorCore.EmulateShaderGlobals));
             m_defaultRuntimeController = serializedObject.FindProperty(nameof(AASEmulatorCore.defaultRuntimeController));
             m_clientInstallPath = serializedObject.FindProperty(nameof(AASEmulatorCore.ClientInstallPath));
@@ -116,6 +118,7 @@ namespace NAK.AASEmulator.Editor
             EditorGUILayout.LabelField("Emulator / Configuration", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_onlyInitializeOnSelect);
             EditorGUILayout.PropertyField(m_emulateAASMenu);
+            EditorGUILayout.PropertyField(m_snapGestureSliders);
             EditorGUILayout.PropertyField(m_emulateShaderGlobals);
             EditorGUILayout.PropertyField(m_defaultRuntimeController);
             

@@ -119,8 +119,18 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             {
                 _gestureRight = value;
                 Parameters.SetParameter("GestureRight", value, true);
-                Parameters.SetParameter("GestureRightIdx", Mathf.FloorToInt(value), true);
             }
+        }
+        
+        private int _gestureRightIdx;
+        public int GestureRightIdx
+        {
+            set
+            {
+                _gestureRightIdx = value;
+                Parameters.SetParameter("GestureRightIdx", value, true);
+            }
+            get => _gestureRightIdx;
         }
         
         private float _gestureLeft;
@@ -131,8 +141,18 @@ namespace NAK.AASEmulator.Runtime.SubSystems
             {
                 _gestureLeft = value;
                 Parameters.SetParameter("GestureLeft", value, true);
-                Parameters.SetParameter("GestureLeftIdx", Mathf.FloorToInt(value), true);
             }
+        }
+        
+        private int _gestureLeftIdx;
+        public int GestureLeftIdx
+        {
+            set
+            {
+                _gestureLeftIdx = value;
+                Parameters.SetParameter("GestureLeftIdx", value, true);
+            }
+            get => _gestureLeftIdx;
         }
         
         private int _toggle;
